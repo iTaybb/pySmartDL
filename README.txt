@@ -14,7 +14,7 @@ Project Links
 =============
 
  - Downloads: http://pypi.python.org/pypi/pysmartdl
- - Documentation: http://itaybb.github.io/pysmartdl or at the docs folder
+ - Documentation: http://itaybb.github.io/pySmartDL/ or at the docs folder
  - Project page: https://github.com/iTaybb/pysmartdl
  
 Installation
