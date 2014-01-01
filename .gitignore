@@ -216,3 +216,5 @@ pip-log.txt
 
 ### CUSTOM ###
 docs/_build
+docs/Makefile
+*.bat
