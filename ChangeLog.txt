@@ -1,0 +1,9 @@
+Version history of pySmartDL
+=============================
+
+Below you find a list with the added features, changes and fixes for
+each version.
+
+======================
+(Version 1.0.0 beta; 01/01/14)
+- first public beta release
