@@ -10,7 +10,7 @@ setup(
     license='Public Domain',
     packages=['pySmartDL'],
     description='A Smart Download Manager for Python',
-    long_description=open('README.txt').read(),
+    long_description=open('README.md').read(),
     install_requires=[
         "threadpool >= 1.2.7",
     ],

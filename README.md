@@ -13,9 +13,10 @@ Python Smart Download Manager -- pySmartDL
 Project Links
 =============
 
- - Downloads: http://pypi.python.org/pypi/pysmartdl
- - Documentation: http://itaybb.github.io/pySmartDL/ or at the docs folder
- - Project page: https://github.com/iTaybb/pysmartdl
+ * Downloads: http://pypi.python.org/pypi/pySmartDL/
+ * Documentation: http://itaybb.github.io/pySmartDL/
+ * Project page: https://github.com/iTaybb/pySmartDL/
+ * Bugs and Issues: https://github.com/iTaybb/pySmartDL/issues
  
 Installation
 ============
@@ -54,12 +55,7 @@ Download is as simple as creating an instance and launching it::
 Requirements
 ==============
 
- - Python 2.7 or greater.
- - The `threadpool  <https://pypi.python.org/pypi/threadpool>`_ package.
-
-Bugs and Issues
-===============
-
-https://github.com/iTaybb/pysmartdl/issues
+ * Python 2.7.
+ * The `threadpool  <https://pypi.python.org/pypi/threadpool>`_ package.
 
 @Itay Brandes.

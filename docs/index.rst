@@ -3,11 +3,31 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to PySmartDL's documentation!
-=====================================
+Python Smart Download Manager -- pySmartDL
+==========================================
 
-``pySmartDL`` strives to be a full-pleged smart download manager for Python.
-Typical usage often looks like this::
+``pySmartDL`` strives to be a full-pleged smart download manager for Python. Main features:
+
+* Built-in download acceleration (with the `multipart downloading technique <http://stackoverflow.com/questions/93642/how-do-download-accelerators-work>`_).
+* Mirrors support.
+* Pause/Unpause feature.
+* Hash checking.
+* Non-blocking, shows progress bar, download speed and eta.
+
+=============
+Project Links
+=============
+
+ * Downloads: http://pypi.python.org/pypi/pySmartDL/
+ * Documentation: http://itaybb.github.io/pySmartDL/
+ * Project page: https://github.com/iTaybb/pySmartDL/
+ * Bugs and Issues: https://github.com/iTaybb/pySmartDL/issues
+
+=====
+Usage
+=====
+
+Download is as simple as creating an instance and launching it::
 
 	import os
 	from pySmartDL import SmartDL
@@ -23,34 +43,11 @@ Typical usage often looks like this::
 	os.startfile(obj.get_dest()) # get_dest() returns the destination of the downloaded file.
 
 ==============
-Main Features
+Requirements
 ==============
 
-* Built-in download acceleration (with the `multipart downloading technique <http://stackoverflow.com/questions/93642/how-do-download-accelerators-work>`_).
-* Mirrors support.
-* Pause/Unpause feature.
-* Hash checking.
-* Non-blocking, shows progress bar, download speed and eta.
-
-==============
-Prerequisites
-==============
-
-PySmartDL works with Python 2.7. The `threadpool  <https://pypi.python.org/pypi/threadpool>`_ module needs to be installed before first running pySmartDL.
-
-===
-FAQ
-===
-Q: How do I make a feature request?
-A: Mail me your ideas and also don't forget to tell me the benefits.  
-
-Q: I found a bug. How should I report it?  
-A: Mail me the details.  
-   Try to give as many details as possible, especially describe the necessary  
-   steps to reproduce the bug.  
-   
-Q: How can I access the source code?  
-A: You're more than welcome to visit our github repository: https://github.com/iTaybb/pySmartDL
+ * Python 2.7.
+ * The `threadpool  <https://pypi.python.org/pypi/threadpool>`_ package.
 
 Documentation
 =====================================
