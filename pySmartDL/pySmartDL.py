@@ -282,7 +282,7 @@ class SmartDL:
             self._failed = True
             self.errors.append(e)
     
-    def get_eta(self, human=True):
+    def get_eta(self, human=False):
         '''
         Get estimated time of download completion, in seconds. Returns `0` if there is
         no enough data to calculate the estimated time (this will happen on the approx.
@@ -290,7 +290,7 @@ class SmartDL:
         
         :param human: If true, returns a human-readable formatted string. Else, returns an int type number
         :type human: bool
-        :rtype: int
+        :rtype: int/string
         '''
         if human:
             s = utils.time_human(self.control_thread.get_eta())
