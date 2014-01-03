@@ -9,6 +9,9 @@ import urllib
 import urllib2
 import random
 import logging
+from math import log
+
+unit_list = zip(['B', 'kB', 'MB', 'GB', 'TB', 'PB'], [0, 0, 1, 2, 2, 2])
 
 def combine_files(parts, dest):
     '''
@@ -147,6 +150,58 @@ def get_random_useragent():
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:25.0) Gecko/20100101 Firefox/25.0',
                 ]
     return random.choice(l)
+
+def sizeof_human(num):
+    '''
+    Human-readable formatting for filesizes. Taken from http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
+    '''
+    if num > 1:
+        exponent = min(int(log(num, 1024)), len(unit_list) - 1)
+        quotient = float(num) / 1024**exponent
+        unit, num_decimals = unit_list[exponent]
+        format_string = '{:,.%sf} {}' % (num_decimals)
+        return format_string.format(quotient, unit)
+    if num == 0:
+        return '0 bytes'
+    if num == 1:
+        return '1 byte'
+
+def time_human(amount, units='seconds', fmt_short=False):
+    '''
+    Human-readable formatting for timing. Based on code from http://stackoverflow.com/questions/6574329/how-can-i-produce-a-human-readable-difference-when-subtracting-two-unix-timestam
+    '''
+    amount = int(amount)
+    if amount == 0:
+        return "0s" if fmt_short else "0 seconds"
+            
+    INTERVALS = [1, 60, 3600, 86400, 604800, 2419200, 29030400]
+    if fmt_short:
+        units = units[0]
+        NAMES = ['s'*2, 'm'*2, 'h'*2, 'd'*2, 'w'*2, 'y'*2]
+    else:
+        NAMES = [('second', 'seconds'),
+             ('minute', 'minutes'),
+             ('hour', 'hours'),
+             ('day', 'days'),
+             ('week', 'weeks'),
+             ('month', 'months'),
+             ('year', 'years')]
+
+    result = []
+
+    unit = map(lambda a: a[1], NAMES).index(units)
+    # Convert to seconds
+    amount = amount * INTERVALS[unit]
+
+    for i in range(len(NAMES)-1, -1, -1):
+        a = amount / INTERVALS[i]
+        if a > 0:
+            result.append( (a, NAMES[i][1 % a]) )
+            amount -= a * INTERVALS[i]
+
+    if fmt_short:
+        return "".join(["%s%s" % x for x in result])
+    return ", ".join(["%s %s" % x for x in result])
     
 def create_debugging_logger():
     '''

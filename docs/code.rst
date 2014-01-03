@@ -11,14 +11,13 @@ Basic usage::
 	from pySmartDL import SmartDL
 
 	url = "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"
-	dest = "C:\\Downloads\\"
+	dest = "C:\\Downloads\\" # or '~/Downloads/' on linux
 
 	obj = SmartDL(url, dest)
 	obj.start()
-
 	# [*] 0.23 / 0.37 MB @ 88.00KB/s [##########--------] [60%, 2s left]
 
-	os.startfile(obj.get_dest()) # get_dest() returns the destination of the downloaded file.
+	path = obj.get_dest()
 
 For more examples please refer to the :doc:`examples` page.
 
@@ -42,7 +41,7 @@ The following exceptions may be raised:
 	
  .. exception:: CanceledException
  
-	Raised when user cancels the task with `SmartDL.stop()`
+	Raised when user cancels the task with `SmartDL.stop()`.
 	
  .. exception:: urllib2.HTTPError
  

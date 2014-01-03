@@ -33,14 +33,13 @@ Download is as simple as creating an instance and launching it::
 	from pySmartDL import SmartDL
 
 	url = "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"
-	dest = "C:\\Downloads\\"
+	dest = "C:\\Downloads\\" # or '~/Downloads/' on linux
 
 	obj = SmartDL(url, dest)
 	obj.start()
-
 	# [*] 0.23 / 0.37 MB @ 88.00KB/s [##########--------] [60%, 2s left]
 
-	os.startfile(obj.get_dest()) # get_dest() returns the destination of the downloaded file.
+	path = obj.get_dest()
 
 ==============
 Requirements

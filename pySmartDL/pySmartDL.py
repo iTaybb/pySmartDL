@@ -6,6 +6,7 @@ import copy
 import threading
 import time
 import math
+import tempfile
 import hashlib
 import logging
 from urlparse import urlparse
@@ -18,7 +19,7 @@ import threadpool
 
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
-__version_minor__ = 0
+__version_minor__ = 1
 __version_micro__ = 0
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
 
@@ -76,11 +77,14 @@ class SmartDL:
         self.url = self.mirrors.pop(0)
         
         fn = urlparse(self.url).path.split('/')[-1]
-        self.dest = dest or os.path.join(os.environ["Temp"], 'pySmartDL', fn)
+        self.dest = dest or os.path.join(tempfile.gettempdir(), 'pySmartDL', fn)
         if self.dest[-1] == os.sep:
+            if os.path.exists(self.dest[:-1]) and os.path.isfile(self.dest[:-1]):
+                os.unlink(self.dest[:-1])
             self.dest += fn
         if os.path.isdir(self.dest):
             self.dest = os.path.join(self.dest, fn)
+        
         if not os.path.exists(os.path.dirname(self.dest)):
             os.makedirs(os.path.dirname(self.dest))
         self.progress_bar = progress_bar
@@ -278,21 +282,30 @@ class SmartDL:
             self._failed = True
             self.errors.append(e)
     
-    def get_eta(self):
+    def get_eta(self, human=True):
         '''
         Get estimated time of download completion, in seconds. Returns `0` if there is
         no enough data to calculate the estimated time (this will happen on the approx.
         first 5 seconds of each download).
         
+        :param human: If true, returns a human-readable formatted string. Else, returns an int type number
+        :type human: bool
         :rtype: int
         '''
+        if human:
+            s = utils.time_human(self.control_thread.get_eta())
+            return s if s else "TBD"
         return self.control_thread.get_eta()
-    def get_speed(self):
+    def get_speed(self, human=False):
         '''
         Get current transfer speed in bytes per second.
         
-        :rtype: int
+        :param human: If true, returns a human-readable formatted string. Else, returns an int type number
+        :type human: bool
+        :rtype: int/string
         '''
+        if human:
+            return "%s/s" % utils.sizeof_human(self.control_thread.get_speed())
         return self.control_thread.get_speed()
     def get_progress(self):
         '''
@@ -428,22 +441,31 @@ class SmartDL:
         :rtype: string
         '''
         return self.dest
-    def get_dl_time(self):
+    def get_dl_time(self, human=False):
         '''
         Returns how much time did the download take, in seconds. Returns
         `-1` if the download task is not finished yet.
-        
-        :rtype: int
+
+        :param human: If true, returns a human-readable formatted string. Else, returns an int type number
+        :type human: bool
+        :rtype: int/string
         '''
+        if human:
+            return utils.time_human(self.control_thread.get_dl_time())
         return self.control_thread.get_dl_time()
         
-    def get_dl_size(self):
+    def get_dl_size(self, human=False):
         '''
         Get downloaded bytes counter in bytes.
         
-        :rtype: int
+        :param human: If true, returns a human-readable formatted string. Else, returns an int type number
+        :type human: bool
+        :rtype: int/string
         '''
+        if human:
+            return utils.sizeof_human(self.control_thread.get_dl_size())    
         return self.control_thread.get_dl_size()
+    
     
     def get_data(self, binary=False, bytes=-1):
         '''
@@ -509,9 +531,9 @@ class ControlThread(threading.Thread):
                 
             if self.progress_bar:
                 if self.obj.filesize:
-                    status = r"[*] %.2f / %.2f MB @ %.2fKB/s %s [%3.2f%%, %ds left]   " % (self.shared_var.value / 1024.0**2, self.obj.filesize / 1024.0**2, self.dl_speed/1024.0, utils.progress_bar(1.0*self.shared_var.value/self.obj.filesize), self.shared_var.value * 100.0 / self.obj.filesize, self.eta)
+                    status = r"[*] %s / %s @ %s/s %s [%3.2f%%, %s left]   " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.dl_speed), utils.progress_bar(1.0*self.shared_var.value/self.obj.filesize), self.shared_var.value * 100.0 / self.obj.filesize, utils.time_human(self.eta, fmt_short=True))
                 else:
-                    status = r"[*] %.2f / ??? MB @ %.2fKB/s   " % (self.shared_var.value / 1024.0**2, self.dl_speed/1024.0)
+                    status = r"[*] %s / ??? MB @ %s/s   " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.dl_speed))
                 status = status + chr(8)*(len(status)+1)
                 print status,
             try:
@@ -526,15 +548,13 @@ class ControlThread(threading.Thread):
             
         if self.progress_bar:
             if self.obj.filesize:
-                print r"[*] %.2f / %.2f MB @ %.2fKB/s %s [100%%, 0s left]    " % (self.obj.filesize / 1024.0**2, self.obj.filesize / 1024.0**2, self.dl_speed/1024.0, utils.progress_bar(1.0))
+                print r"[*] %s / %s @ %s/s %s [100%%, 0s left]    " % (utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.dl_speed), utils.progress_bar(1.0))
             else:
-                print r"[*] %.2f / %.2f MB @ %.2fKB/s    " % (self.shared_var.value / 1024.0**2, self.shared_var.value / 1024.0**2, self.dl_speed/1024.0)
+                print r"[*] %s / %s @ %s/s    " % (utils.sizeof_human(self.shared_var.value), self.shared_var.value / 1024.0**2, utils.sizeof_human(self.dl_speed))
                 
         t2 = time.time()
         self.dl_time = float(t2-t1)
         
-        # self.logger.debug("Combining files...") # actually happens on post_threadpool_thread
-        # self.obj.status = "combining" # actually happens on post_threadpool_thread
         while self.obj.post_threadpool_thread.is_alive():
             time.sleep(0.1)
             
@@ -679,7 +699,7 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
             if retries > 0:
                 logger.warning("Thread didn't got the file it was expecting. Retrying (%d times left)..." % (retries-1))
                 time.sleep(5)
-                return download(url, dest, startByte, endByte, headers, timeout, shared_var, logger, retries-1)
+                return download(url, dest, startByte, endByte, headers, timeout, shared_var, thread_shared_cmds, logger, retries-1)
             else:
                 raise
         else:

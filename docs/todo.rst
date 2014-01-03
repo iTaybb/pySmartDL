@@ -2,19 +2,11 @@ To-Do List
 ===================================
 
 ============
-Close Future
+To-Do List
 ============
-* folder structer.
-* setup.py, distutils
-* github
-* Good documentation.
-* Improve code.
-
-===========
-Far Future
-===========
-
-* speed limit
-* Python 3 support.
-* Proxy support.
-* Linux support.
+* Transfer Speed Limits
+* Basic access authentication
+* Python 2.6 support
+* Python 3 support
+* Proxy support
+* Improve code

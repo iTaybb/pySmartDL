@@ -11,13 +11,13 @@ Example 1: Downloading a file and running it
 	from pySmartDL import SmartDL
 
 	url = "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"
-	dest = "C:\\Downloads\\"
+	dest = "C:\\Downloads\\" # or '~/Downloads/' on linux
 
 	obj = SmartDL(url, dest)
 	obj.start()
 	# [*] 0.23 / 0.37 MB @ 88.00KB/s [##########--------] [60%, 2s left]
 
-	os.startfile(obj.get_dest()) # get_dest() returns the destination of the downloaded file.
+	path = obj.get_dest()
 
 =============================================================================
 Example 2: Downloading a file to a random location, not showing progress bar
@@ -73,11 +73,11 @@ Example 5: Use the nonblocking flag and get information during the download proc
 	url_100mb_file = ['http://ipv4.download.thinkbroadband.com/100MB.zip']
 	obj = SmartDL(url_100mb_file, progress_bar=False)
 	obj.start(blocking=False)
-	
+
 	while not obj.isFinished():
-		print "Speed: %sKB/s" % "{:,.2f}".format(obj.get_speed()/1024)
-		print "Already downloaded: %sKB" % "{:,d}".format(obj.get_dl_size()/1024)
-		print "Eta: %ds" % obj.get_eta()
+		print "Speed: %s" % obj.get_speed(human=True)
+		print "Already downloaded: %s" % obj.get_dl_size(human=True)
+		print "Eta: %s" % obj.get_eta(human=True)
 		print "Progress: %d%%" % (obj.get_progress()*100)
 		print "Progress bar: %s" % obj.get_progress_bar()
 		print "Status: %s" % obj.get_status()
@@ -86,7 +86,7 @@ Example 5: Use the nonblocking flag and get information during the download proc
 		
 	if obj.isSuccessful():
 		print "downloaded file to '%s'" % obj.get_dest()
-		print "download time is %ss" % "{:,.2f}".format(obj.get_dl_time())
+		print "download task took %ss" % obj.get_dl_time(human=True)
 		print "File hashes:"
 		print " * MD5: %s" % obj.get_data_hash('md5')
 		print " * SHA1: %s" % obj.get_data_hash('sha1')
