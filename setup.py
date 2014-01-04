@@ -1,9 +1,10 @@
+# Copyright (C) 2014 Itay Brandes
 import os
 from setuptools import setup
 
 setup(
     name='pySmartDL',
-    version='1.1.0',
+    version='1.1.1',
     url='http://pypi.python.org/pypi/pySmartDL/',
     author='Itay Brandes',
     author_email='itay.brandes+pysmartdl@gmail.com',
@@ -19,6 +20,7 @@ setup(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         # 'Programming Language :: Python :: 3',
         # 'Programming Language :: Python :: 3.2',

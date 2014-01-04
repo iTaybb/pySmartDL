@@ -54,7 +54,7 @@ Download is as simple as creating an instance and launching it::
 Requirements
 ==============
 
- * Python 2.7.
+ * Python 2.6 or 2.7.
  * The `threadpool  <https://pypi.python.org/pypi/threadpool>`_ package.
 
-@Itay Brandes.
+Copyright (C) 2014 Itay Brandes.

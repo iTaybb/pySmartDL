@@ -1,4 +1,4 @@
-# Copyright (C) 2012-2013 Itay Brandes
+# Copyright (C) 2014 Itay Brandes
 '''
 The Utils class contains many functions for project-wide use.
 '''

@@ -5,6 +5,9 @@ Below you find a list with the added features, changes and fixes for
 each version.
 
 ======================
+(Version 1.1.1 beta; 04/01/14)
+- NEW: Python 2.6 support.
+
 (Version 1.1.0 beta; 03/01/14)
 - first public beta release
 - NEW: Linux support.

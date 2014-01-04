@@ -1,4 +1,4 @@
-# Copyright (C) 2012-2013 Itay Brandes
+# Copyright (C) 2014 Itay Brandes
 
 import os
 import urllib2
@@ -20,7 +20,7 @@ import threadpool
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 1
-__version_micro__ = 0
+__version_micro__ = 1
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
