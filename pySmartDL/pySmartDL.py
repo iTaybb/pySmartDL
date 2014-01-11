@@ -20,7 +20,7 @@ import threadpool
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 1
-__version_micro__ = 1
+__version_micro__ = 2
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
@@ -47,7 +47,7 @@ class SmartDL:
     '''
     The main SmartDL class
     
-    :param urls: Download url. You can also pass a list of urls, and those will be used as mirrors.
+    :param urls: Download url. It is possible to pass unsafe and unicode characters. You can also pass a list of urls, and those will be used as mirrors.
     :type urls: string or list of strings
     :param dest: Destination path. Default is `%TEMP%/pySmartDL/`.
     :type dest: string
@@ -66,17 +66,14 @@ class SmartDL:
             * If the past does not exist, it will create the folders, if needed, and refer to the last section of the path as the filename.
             * If you want to download to folder that does not exist at the moment, and want the module to fill in the filename, make sure the path ends with `os.sep`.
             * If no path is provided, `%TEMP%/pySmartDL/` will be used.
-    
     '''
     
     def __init__(self, urls, dest=None, progress_bar=True, logger=None, connect_default_logger=False):
         self.mirrors = [urls] if isinstance(urls, basestring) else urls
-        for i, url in enumerate(self.mirrors):
-            if " " in url:
-                self.mirrors[i] = utils.url_fix(url)
+        self.mirrors = [utils.url_fix(x) for x in self.mirrors]
         self.url = self.mirrors.pop(0)
         
-        fn = urlparse(self.url).path.split('/')[-1]
+        fn = os.path.basename(urlparse(self.url).path)
         self.dest = dest or os.path.join(tempfile.gettempdir(), 'pySmartDL', fn)
         if self.dest[-1] == os.sep:
             if os.path.exists(self.dest[:-1]) and os.path.isfile(self.dest[:-1]):
@@ -87,7 +84,9 @@ class SmartDL:
         
         if not os.path.exists(os.path.dirname(self.dest)):
             os.makedirs(os.path.dirname(self.dest))
+        
         self.progress_bar = progress_bar
+        
         if logger:
             self.logger = logger
         elif connect_default_logger:
@@ -100,7 +99,7 @@ class SmartDL:
         self.timeout = 4
         self.current_attemp = 1 
         self.attemps_limit = 4
-        self.minChunkFile = 1024**2 # 1MB
+        self.minChunkFile = 1024**2*2 # 2MB
         self.filesize = 0
         self.shared_var = multiprocessing.Value(c_int, 0) # a ctypes var that counts the bytes already downloaded
         self.thread_shared_cmds = {}
@@ -126,7 +125,7 @@ class SmartDL:
         self.pool = threadpool.ThreadPool(self.threads_count)
         
     def __str__(self):
-        return 'SmartDL(url=r"%s", dest=r"%s", progress_bar=%s)' % (self.url, self.dest, self.progress_bar)
+        return 'SmartDL(r"%s", dest=r"%s")' % (self.url, self.dest)
     def __repr__(self):
         return "<SmartDL %s>" % (self.url)
         
@@ -135,7 +134,7 @@ class SmartDL:
         Adds hash verification to the download.
         
         If hash is not correct, will try different mirrors. If all mirrors aren't
-        passing hash verification, HashFailedException() Exception will be raised.
+        passing hash verification, `HashFailedException` Exception will be raised.
         
         .. NOTE::
             If downloaded file already exist on the destination, and hash matches, pySmartDL will not download it again.
@@ -204,15 +203,15 @@ class SmartDL:
         meta = urlObj.info()
         try:
             self.filesize = int(meta.getheaders("Content-Length")[0])
-            self.logger.debug("Content-Length is %d (%.2fMB)." % (self.filesize, self.filesize/1024.0**2))
+            self.logger.debug("Content-Length is %d (%s)." % (self.filesize, utils.sizeof_human(self.filesize)))
         except IndexError:
-            self.logger.warning("Server did not send Content-Length.")
+            self.logger.warning("Server did not send Content-Length. Filesize is unknown.")
             self.filesize = 0
             
-        args = calc_args(self.filesize, self.threads_count, self.minChunkFile)
+        args = _calc_chunk_size(self.filesize, self.threads_count, self.minChunkFile)
         bytes_per_thread = args[0][1]-args[0][0]
         if len(args)>1:
-            self.logger.debug("Launching %d threads (downloads %sKB/Thread)." % (len(args),  "{:,}".format(bytes_per_thread/1024)))
+            self.logger.debug("Launching %d threads (downloads %s/Thread)." % (len(args),  utils.sizeof_human(bytes_per_thread)))
         else:
             self.logger.debug("Launching 1 thread.")
         
@@ -516,7 +515,7 @@ class ControlThread(threading.Thread):
         self.calcETA_queue = []
         self.calcETA_i = 0
         self.calcETA_val = 0
-        self.dl_time = -1.00
+        self.dl_time = -1.0
         
         self.daemon = True
         self.start()
@@ -654,7 +653,7 @@ def post_threadpool_actions(pool, args, expected_filesize, SmartDL_obj):
             SmartDL_obj.logger.debug('Hash verification failed.')
             SmartDL_obj.try_next_mirror(HashFailedException(os.path.basename(dest_path), hash, SmartDL_obj.hash_code))
     
-def calc_args(filesize, threads, minChunkFile):
+def _calc_chunk_size(filesize, threads, minChunkFile):
     if not filesize:
         return [(0, 0)]
         

@@ -31,7 +31,7 @@ class TestSmartDL(unittest.TestCase):
 
         data = obj.get_data(binary=True, bytes=2)
         
-        self.assertEqual(data, 'PK')    
+        self.assertEqual(data, 'PK')
     
     def test_mirrors(self):
         urls = ["http://totally_fake_website/7za.zip" ,"http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"]

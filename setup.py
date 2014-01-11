@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='pySmartDL',
-    version='1.1.1',
+    version='1.1.2',
     url='http://pypi.python.org/pypi/pySmartDL/',
     author='Itay Brandes',
     author_email='itay.brandes+pysmartdl@gmail.com',

@@ -54,7 +54,7 @@ Example 4: Fetch data to memory instead of reading it from a file
 
 	from pySmartDL import SmartDL
 	 
-	url = "http://wiki.python.org/moin/Python2orPython3"
+	url = "http://wiki.python.org/moin/Python2orPython3" # it's also possible to pass unsafe and unicode characters in url
 	obj = SmartDL(url, progress_bar=False)
 	obj.start()
 

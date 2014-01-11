@@ -5,6 +5,13 @@ Below you find a list with the added features, changes and fixes for
 each version.
 
 ======================
+(Version 1.1.2 beta; 11/01/14)
+- IMPROVE: Added unformated url input in the examples documentation section.
+- IMPROVE: Better documentation for some functions.
+- FIX: sizeof_human failed on python2.6.
+- FIX: Sometimes didn't escape urls proprely.
+- FIX: Sphinx wasn't able to locate the pySmartDL package.
+
 (Version 1.1.1 beta; 04/01/14)
 - NEW: Python 2.6 support.
 
