@@ -1,4 +1,4 @@
-# coding: utf-8
+# Copyright (C) 2014 Itay Brandes
 import os
 import sys
 import random
@@ -16,14 +16,20 @@ import pySmartDL
 
 class TestSmartDL(unittest.TestCase):
     def setUp(self):
-        self.dl_dir = os.path.join(os.getenv('tmp'), "".join([random.choice(string.letters+string.digits) for i in range(8)]), '')
+        self.dl_dir = os.path.join(os.getenv('tmp'), "".join([random.choice(string.ascii_letters+string.digits) for i in range(8)]), '')
         while os.path.exists(self.dl_dir):
-            self.dl_dir = os.path.join(os.getenv('tmp'), "".join([random.choice(string.letters+string.digits) for i in range(8)]), '')
+            self.dl_dir = os.path.join(os.getenv('tmp'), "".join([random.choice(string.ascii_letters+string.digits) for i in range(8)]), '')
             
         self.default_7za920_mirrors = [ "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip",
                                         "http://www.bevc.net/dl/7za920.zip",
                                         "http://ftp.jaist.ac.jp/pub/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip",
                                         "http://www.mirrorservice.org/sites/downloads.sourceforge.net/s/se/sevenzip/7-Zip/9.20/7za920.zip"]
+                                        
+    def test_dependencies(self):
+        self.assertTrue(sys.version_info >= (2,6))
+        
+        if sys.version_info < (3,2):
+            from concurrent import futures
     
     def test_download(self):
         obj = SmartDL(self.default_7za920_mirrors, dest=self.dl_dir, progress_bar=False)
@@ -31,7 +37,10 @@ class TestSmartDL(unittest.TestCase):
 
         data = obj.get_data(binary=True, bytes=2)
         
-        self.assertEqual(data, 'PK')
+        if sys.version_info >= (3,):
+            self.assertEqual(data, b'PK')
+        else:
+            self.assertEqual(data, 'PK')
     
     def test_mirrors(self):
         urls = ["http://totally_fake_website/7za.zip" ,"http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"]
@@ -80,4 +89,7 @@ class TestSmartDL(unittest.TestCase):
         # self.assertTrue(isinstance(obj.get_errors()[-1], pySmartDL.CanceledException), msg=str(obj.get_errors()[-1]))
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    if sys.version_info < (2,7):
+        unittest.main()
+    else:
+        unittest.main(verbosity=2)

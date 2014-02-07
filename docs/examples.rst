@@ -43,7 +43,7 @@ Example 3: Mirrors are also supported
 	obj = SmartDL(urls, progress_bar=False)
 	obj.start()
 	
-	print obj.isSuccessful() # Returns True, even though the first link is not working.
+	print(obj.isSuccessful()) # Returns True, even though the first link is not working.
 
 	# Do something with obj.get_dest()
 
@@ -75,26 +75,26 @@ Example 5: Use the nonblocking flag and get information during the download proc
 	obj.start(blocking=False)
 
 	while not obj.isFinished():
-		print "Speed: %s" % obj.get_speed(human=True)
-		print "Already downloaded: %s" % obj.get_dl_size(human=True)
-		print "Eta: %s" % obj.get_eta(human=True)
-		print "Progress: %d%%" % (obj.get_progress()*100)
-		print "Progress bar: %s" % obj.get_progress_bar()
-		print "Status: %s" % obj.get_status()
-		print "\n"*2+"="*50+"\n"*2
+		print("Speed: %s" % obj.get_speed(human=True))
+		print("Already downloaded: %s" % obj.get_dl_size(human=True))
+		print("Eta: %s" % obj.get_eta(human=True))
+		print("Progress: %d%%" % (obj.get_progress()*100))
+		print("Progress bar: %s" % obj.get_progress_bar())
+		print("Status: %s" % obj.get_status())
+		print("\n"*2+"="*50+"\n"*2)
 		time.sleep(0.2)
 		
 	if obj.isSuccessful():
-		print "downloaded file to '%s'" % obj.get_dest()
-		print "download task took %ss" % obj.get_dl_time(human=True)
-		print "File hashes:"
-		print " * MD5: %s" % obj.get_data_hash('md5')
-		print " * SHA1: %s" % obj.get_data_hash('sha1')
-		print " * SHA256: %s" % obj.get_data_hash('sha256')
+		print("downloaded file to '%s'" % obj.get_dest())
+		print("download task took %ss" % obj.get_dl_time(human=True))
+		print("File hashes:")
+		print(" * MD5: %s" % obj.get_data_hash('md5'))
+		print(" * SHA1: %s" % obj.get_data_hash('sha1'))
+		print(" * SHA256: %s" % obj.get_data_hash('sha256'))
 	else:
-		print "There were some errors:"
+		print("There were some errors:")
 		for e in obj.get_errors():
-			print str(e)
+			print(str(e))
 
 	# Do something with obj.get_dest()
 	
@@ -117,7 +117,7 @@ Example with passing `blocking=True` to `obj.start()`::
 		obj.start()
 		# Do something with obj.get_dest()
 	except HashFailedException:
-		print "Hash check failed!"
+		print("Hash check failed!")
 	
 Example with passing `blocking=False` to `obj.start()`::
 
@@ -135,9 +135,9 @@ Example with passing `blocking=False` to `obj.start()`::
 	while not obj.isFinished():
 		do_your_stuff()
 	if obj.isSuccessful():
-		print "Success!"
+		print("Success!")
 		# Do something with obj.get_dest()
 	else:
-		print "Download failed with the following exceptions:"
+		print("Download failed with the following exceptions:")
 		for e in obj.get_errors():
-			print unicode(e)
+			print(unicode(e))

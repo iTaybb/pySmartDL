@@ -1,6 +1,7 @@
 # Copyright (C) 2014 Itay Brandes
 
 import os
+import sys
 import urllib2
 import copy
 import threading
@@ -15,12 +16,11 @@ import multiprocessing.dummy as multiprocessing
 from ctypes import c_int
 
 import utils
-import threadpool
 
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
-__version_minor__ = 1
-__version_micro__ = 2
+__version_minor__ = 2
+__version_micro__ = 0
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
@@ -82,9 +82,6 @@ class SmartDL:
         if os.path.isdir(self.dest):
             self.dest = os.path.join(self.dest, fn)
         
-        if not os.path.exists(os.path.dirname(self.dest)):
-            os.makedirs(os.path.dirname(self.dest))
-        
         self.progress_bar = progress_bar
         
         if logger:
@@ -113,16 +110,19 @@ class SmartDL:
         self.post_threadpool_thread = None
         self.control_thread = None
         
+        if not os.path.exists(os.path.dirname(self.dest)):
+            self.logger.debug('Folder "%s" does not exist. Creating...' % os.path.dirname(self.dest))
+            os.makedirs(os.path.dirname(self.dest))
         if not utils.is_HTTPRange_supported(self.url):
             self.logger.warning("Server does not support HTTPRange. threads_count is set to 1.")
             self.threads_count = 1
         if os.path.exists(self.dest):
-            self.logger.warning("Destination '%s' already exists. Existing file will be removed." % self.dest)
+            self.logger.warning('Destination "%s" already exists. Existing file will be removed.' % self.dest)
         if not os.path.exists(os.path.dirname(self.dest)):
-            self.logger.warning("Directory '%s' does not exist. Creating it..." % os.path.dirname(self.dest))
+            self.logger.warning('Directory "%s" does not exist. Creating it...' % os.path.dirname(self.dest))
             os.makedirs(os.path.dirname(self.dest))
-            
-        self.pool = threadpool.ThreadPool(self.threads_count)
+        
+        self.pool = utils.ManagedThreadPoolExecutor(self.threads_count)
         
     def __str__(self):
         return 'SmartDL(r"%s", dest=r"%s")' % (self.url, self.dest)
@@ -199,10 +199,9 @@ class SmartDL:
                 self._failed = True
                 self.status = "finished"
                 raise
-                
-        meta = urlObj.info()
+        
         try:
-            self.filesize = int(meta.getheaders("Content-Length")[0])
+            self.filesize = int(urlObj.headers["Content-Length"])
             self.logger.debug("Content-Length is %d (%s)." % (self.filesize, utils.sizeof_human(self.filesize)))
         except IndexError:
             self.logger.warning("Server did not send Content-Length. Filesize is unknown.")
@@ -216,30 +215,18 @@ class SmartDL:
             self.logger.debug("Launching 1 thread.")
         
         self.status = "downloading"
+        
         for i, arg in enumerate(args):
-            x = [self.url, self.dest+".%.3d" % i, arg[0],
-                    arg[1], copy.deepcopy(self.headers), self.timeout, self.shared_var]
-                    
-        t_args = [[ self.url,
-                    self.dest+".%.3d" % i,
-                    arg[0],
-                    arg[1],
-                    copy.deepcopy(self.headers),
-                    self.timeout,
-                    self.shared_var] for i, arg in enumerate(args)]
-                    
-        for i, arg in enumerate(args):
-            req = threadpool.WorkRequest(download,
-                                        [   self.url,
-                                            self.dest+".%.3d" % i,
-                                            arg[0],
-                                            arg[1],
-                                            copy.deepcopy(self.headers),
-                                            self.timeout,
-                                            self.shared_var,
-                                            self.thread_shared_cmds],
-                                        exc_callback=self._exc_callback)
-            self.pool.putRequest(req)
+            req = self.pool.submit(     download,
+                                        self.url,
+                                        self.dest+".%.3d" % i,
+                                        arg[0],
+                                        arg[1],
+                                        copy.deepcopy(self.headers),
+                                        self.timeout,
+                                        self.shared_var,
+                                        self.thread_shared_cmds
+                                        )
         
         self.post_threadpool_thread = threading.Thread(target=post_threadpool_actions, args=(self.pool, [[(self.dest+".%.3d" % i) for i in range(len(args))], self.dest], self.filesize, self))
         self.post_threadpool_thread.daemon = True
@@ -317,16 +304,18 @@ class SmartDL:
         if self.control_thread.get_dl_size() <= self.filesize:
             return 1.0*self.control_thread.get_dl_size()/self.filesize
         return 1.0
-    def get_progress_bar(self):
+    def get_progress_bar(self, length=20):
         '''
         Returns the current progress of the download as a string containing a progress bar.
         
         .. NOTE::
             That's an alias for pySmartDL.utils.progress_bar(obj.get_progress()).
         
+        :param length: The length of the progress bar in chars. Default is 20.
+        :type length: int
         :rtype: string
         '''
-        return utils.progress_bar(self.get_progress())
+        return utils.progress_bar(self.get_progress(), length)
     def isFinished(self):
         '''
         Returns if the task is finished.
@@ -523,22 +512,19 @@ class ControlThread(threading.Thread):
     def run(self):
         t1 = time.time()
         
-        while self.obj.pool.workRequests:
+        while not self.obj.pool.done():
             self.dl_speed = self.calcDownloadSpeed(self.shared_var.value)
             if self.dl_speed > 0:
                 self.eta = self.calcETA((self.obj.filesize-self.shared_var.value)/self.dl_speed)
                 
             if self.progress_bar:
                 if self.obj.filesize:
-                    status = r"[*] %s / %s @ %s/s %s [%3.2f%%, %s left]   " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.dl_speed), utils.progress_bar(1.0*self.shared_var.value/self.obj.filesize), self.shared_var.value * 100.0 / self.obj.filesize, utils.time_human(self.eta, fmt_short=True))
+                    status = r"[*] %s / %s @ %s/s %s [%3.1f%%, %s left]   " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.dl_speed), utils.progress_bar(1.0*self.shared_var.value/self.obj.filesize), self.shared_var.value * 100.0 / self.obj.filesize, utils.time_human(self.eta, fmt_short=True))
                 else:
                     status = r"[*] %s / ??? MB @ %s/s   " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.dl_speed))
                 status = status + chr(8)*(len(status)+1)
                 print status,
-            try:
-                self.obj.pool.poll()
-            except threadpool.NoResultsPending:
-                break
+            
             time.sleep(0.1)
             
         if self.obj._killed:
@@ -557,6 +543,7 @@ class ControlThread(threading.Thread):
         while self.obj.post_threadpool_thread.is_alive():
             time.sleep(0.1)
             
+        self.obj.pool.shutdown()
         self.obj.status = "finished"
         if not self.obj.errors:
             self.logger.debug("File downloaded within %.2f seconds." % self.dl_time)
@@ -618,8 +605,13 @@ class ControlThread(threading.Thread):
 
 def post_threadpool_actions(pool, args, expected_filesize, SmartDL_obj):
     "Run function after thread pool is done. Run this in a thread."
-    while pool.workRequests:
+    while not pool.done():
         time.sleep(0.1)
+        
+    if pool.get_exceptions():
+        SmartDL_obj.logger.warning(unicode(pool.get_exceptions()[0]))
+        SmartDL_obj.retry(unicode(pool.get_exceptions()[0]))
+       
         
     if SmartDL_obj._killed:
         return
@@ -680,7 +672,7 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
         headers = {}
     if endByte:
         headers['Range'] = 'bytes=%d-%d' % (startByte, endByte)
-        
+    
     logger.debug("Downloading '%s' to '%s'..." % (url, dest))
     req = urllib2.Request(url, headers=headers)
     try:

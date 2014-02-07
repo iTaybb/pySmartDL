@@ -5,6 +5,11 @@ Below you find a list with the added features, changes and fixes for
 each version.
 
 ======================
+(Version 1.2.0 beta; 07/02/14)
+- NEW: Python 3 support (3.2+).
+- NEW: The threadpool module is changed from threadpool to the >=python3.2 builtin concurrent.futures module.
+- FIX: Few minor bugfixes.
+
 (Version 1.1.2 beta; 11/01/14)
 - IMPROVE: Added unformated url input in the examples documentation section.
 - IMPROVE: Better documentation for some functions.

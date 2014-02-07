@@ -12,6 +12,7 @@ import urllib2
 import random
 import logging
 import re
+from concurrent import futures # if python2, a backport is needed
 from math import log
 
 def combine_files(parts, dest):
@@ -49,7 +50,7 @@ def url_fix(s, charset='utf-8'):
                     
     (taken from `werkzeug.utils <http://werkzeug.pocoo.org/docs/utils/>`_)
     '''
-    if isinstance(s, unicode):
+    if sys.version_info < (3, 0) and isinstance(s, unicode):
         s = s.encode(charset, 'ignore')
     scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
     path = urllib.quote(path, '/%')
@@ -96,9 +97,7 @@ def is_HTTPRange_supported(url, timeout=15):
     headers = {'Range': 'bytes=0-3'}
     req = urllib2.Request(url, headers=headers)
     urlObj = urllib2.urlopen(req, timeout=timeout)
-        
-    meta = urlObj.info()
-    filesize = int(meta.getheaders("Content-Length")[0])
+    filesize = int(urlObj.headers["Content-Length"])
     
     urlObj.close()
     return (filesize != fullsize)
@@ -116,12 +115,11 @@ def get_filesize(url, timeout=15):
     '''
     url = url_fix(url)
     try:
-        u = urllib2.urlopen(url, timeout=timeout)
+        urlObj = urllib2.urlopen(url, timeout=timeout)
     except (urllib2.HTTPError, urllib2.URLError) as e:
         return 0
-    meta = u.info()
     try:
-        file_size = int(meta.getheaders("Content-Length")[0])
+        file_size = int(urlObj.headers["Content-Length"])
     except IndexError:
         return 0
         
@@ -130,25 +128,21 @@ def get_filesize(url, timeout=15):
 def get_random_useragent():
     '''
     Returns a random popular user-agent.
-    Taken from `here <http://techblog.willshouse.com/2012/01/03/most-common-user-agents/>`_, last updated on 01/01/2014.
+    Taken from `here <http://techblog.willshouse.com/2012/01/03/most-common-user-agents/>`_, last updated on 01/02/2014.
     
     :returns: user-agent
     :rtype: string
     '''
-    l = [   'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9) AppleWebKit/537.71 (KHTML, like Gecko) Version/7.0 Safari/537.71',
-            'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:25.0) Gecko/20100101 Firefox/25.0',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36',
-            'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.73.11 (KHTML, like Gecko) Version/7.0.1 Safari/537.73.11',
-            'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36',
-            'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36',
+    l = [   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.73.11 (KHTML, like Gecko) Version/7.0.1 Safari/537.73.11',
             'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:26.0) Gecko/20100101 Firefox/26.0',
+            'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.76 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.77 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:26.0) Gecko/20100101 Firefox/26.0',
             'Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_4 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11B554a Safari/9537.53',
-            'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:25.0) Gecko/20100101 Firefox/25.0',
+            'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
+            'Mozilla/5.0 (Windows NT 5.1; rv:26.0) Gecko/20100101 Firefox/26.0',
                 ]
     return random.choice(l)
 
@@ -224,7 +218,7 @@ def time_human(duration, fmt_short=False):
     result = []
     
     for i in range(len(NAMES)-1, -1, -1):
-        a = duration / INTERVALS[i]
+        a = duration // INTERVALS[i]
         if a > 0:
             result.append( (a, NAMES[i][1 % a]) )
             duration -= a * INTERVALS[i]
@@ -262,3 +256,25 @@ class DummyLogger(object):
         if name.startswith('__'):
             return object.__getattr__(name)
         return self.dummy_func
+        
+class ManagedThreadPoolExecutor(futures.ThreadPoolExecutor):
+    '''
+    '''
+    def __init__(self, max_workers):
+        futures.ThreadPoolExecutor.__init__(self, max_workers)
+        self._futures = []
+    
+    def submit(self, fn, *args, **kwargs):
+        future = super(ManagedThreadPoolExecutor, self).submit(fn, *args, **kwargs)
+        self._futures.append(future)
+        return future
+    
+    def done(self):
+        return all([x.done() for x in self._futures])
+       
+    def get_exceptions(self):
+        l = []
+        for x in self._futures:
+            if x.exception():
+                l.append(x.exception())
+        return l

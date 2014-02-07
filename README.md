@@ -9,6 +9,7 @@ Python Smart Download Manager -- pySmartDL
 * Pause/Unpause feature.
 * Hash checking.
 * Non-blocking, shows progress bar, download speed and eta.
+* Python 3 Support
 
 Project Links
 =============
@@ -23,7 +24,7 @@ Installation
 
 **Using pip**
 
-    Make sure python-pip is installed on you system.  If you are using virtualenv, then pip is alredy installed into environments created by vertualenv.  Run pip to install pySmartDL:
+    Make sure python-pip is installed on you system. If you are using virtualenv, then pip is alredy installed into environments created by virtualenv. Run pip to install pySmartDL:
 
     ``pip install pySmartDL``
 
@@ -46,7 +47,7 @@ Download is as simple as creating an instance and launching it::
 
 	obj = SmartDL(url, dest)
 	obj.start()
-	# [*] 0.23 / 0.37 MB @ 88.00KB/s [##########--------] [60%, 2s left]
+	# [*] 0.23 Mb / 0.37 Mb @ 88.00Kb/s [##########--------] [60%, 2s left]
 
 	path = obj.get_dest()
 
@@ -54,7 +55,8 @@ Download is as simple as creating an instance and launching it::
 Requirements
 ==============
 
- * Python 2.6 or 2.7.
- * The `threadpool  <https://pypi.python.org/pypi/threadpool>`_ package.
+ * Python 2.6 or greater.
+ * Python 3.0 or greater.
+ * For versions before Python 3.2, the `futures backport  <https://pypi.python.org/pypi/futures>`_ package is also required.
 
 Copyright (C) 2014 Itay Brandes.

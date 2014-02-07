@@ -15,7 +15,7 @@ Basic usage::
 
 	obj = SmartDL(url, dest)
 	obj.start()
-	# [*] 0.23 / 0.37 MB @ 88.00KB/s [##########--------] [60%, 2s left]
+	# [*] 0.23 Mb / 0.37 Mb @ 88.00Kb/s [##########--------] [60%, 2s left]
 
 	path = obj.get_dest()
 
