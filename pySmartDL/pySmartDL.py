@@ -20,7 +20,7 @@ import utils
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 2
-__version_micro__ = 0
+__version_micro__ = 1
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
@@ -60,7 +60,7 @@ class SmartDL:
     :rtype: `SmartDL` instance
     
     .. NOTE::
-            The provided dest may be a folder or a full path name (including filename). The algorithm works as follows:
+            The provided dest may be a folder or a full path name (including filename). The workflow is:
             
             * If the path exists, and it's an existing folder, the file will be downloaded to there with the original filename.
             * If the past does not exist, it will create the folders, if needed, and refer to the last section of the path as the filename.
@@ -151,6 +151,40 @@ class SmartDL:
         self.verify_hash = True
         self.hash_algorithm = algorithm
         self.hash_code = hash
+        
+    def fetch_hash_sums(self):
+        '''
+        Will attempt to fetch UNIX hash sums files (`SHA256SUMS`, `SHA1SUMS` or `MD5SUMS` files in
+        the same url directory).
+        
+        Calls `self.add_hash_verification` if successful. Returns if a matching hash was found.
+        
+        :rtype: bool
+        
+        *New in 1.2.1*
+        '''
+        default_sums_filenames = ['SHA256SUMS', 'SHA1SUMS', 'MD5SUMS']
+        folder = os.path.dirname(self.url)
+        orig_basename = os.path.basename(self.url)
+        
+        self.logger.debug("Looking for SUMS files...")
+        for filename in default_sums_filenames:
+            try:
+                sums_url = "%s/%s" % (folder, filename)
+                obj = urllib2.urlopen(sums_url)
+                data = obj.read().split('\n')
+                obj.close()
+                
+                for line in data:
+                    if orig_basename.lower() in line.lower():
+                        self.logger.debug("Found a matching hash in %s" % sums_url)
+                        algo = filename.rstrip('SUMS')
+                        hash = line.split(' ')[0]
+                        self.add_hash_verification(algo, hash)
+                        return
+                
+            except urllib2.HTTPError:
+                continue
         
     def start(self, blocking=None):
         '''
@@ -409,6 +443,7 @@ class SmartDL:
         if self.status == "paused" and 'pause' in self.thread_shared_cmds:
             self.status = "downloading"
             del self.thread_shared_cmds['pause']
+    
     # def limit_speed(self, kbytes=-1):
         # '''
         # Limits the download transfer speed.
@@ -438,6 +473,8 @@ class SmartDL:
         :type human: bool
         :rtype: int/string
         '''
+        if not self.control_thread:
+            return 0
         if human:
             return utils.time_human(self.control_thread.get_dl_time())
         return self.control_thread.get_dl_time()
@@ -450,6 +487,8 @@ class SmartDL:
         :type human: bool
         :rtype: int/string
         '''
+        if not self.control_thread:
+            return 0
         if human:
             return utils.sizeof_human(self.control_thread.get_dl_size())    
         return self.control_thread.get_dl_size()

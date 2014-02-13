@@ -19,9 +19,9 @@ Example 1: Downloading a file and running it
 
 	path = obj.get_dest()
 
-=============================================================================
-Example 2: Downloading a file to a random location, not showing progress bar
-=============================================================================
+==================================================================================
+Example 2: Downloading a file to a temporarily location, not showing progress bar
+==================================================================================
 ::
 
 	from pySmartDL import SmartDL

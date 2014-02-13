@@ -5,13 +5,13 @@ from setuptools import setup
 
 extra = {}
 if sys.version_info < (3, 2):
-    extra['install_requires'] = "futures >= 2.1.6" # backport of py32 concurrent.futures
+    extra['install_requires'] = "futures >= 2.1.6" # backport of py32 concurrent.futures module
 if sys.version_info >= (3,):
     extra['use_2to3'] = True
 
 setup(
     name='pySmartDL',
-    version='1.2.0',
+    version='1.2.1',
     url='http://pypi.python.org/pypi/pySmartDL/',
     author='Itay Brandes',
     author_email='itay.brandes+pysmartdl@gmail.com',
@@ -23,7 +23,7 @@ setup(
     classifiers=(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'Environment :: Console'
+        'Environment :: Console',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',

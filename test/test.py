@@ -6,7 +6,7 @@ import time
 import string
 import unittest
 
-sys.path.append(r'..')
+# sys.path.append(r'..')
 from pySmartDL import SmartDL, HashFailedException, CanceledException
 import pySmartDL
 
@@ -15,6 +15,8 @@ import pySmartDL
 #
 
 class TestSmartDL(unittest.TestCase):
+    def test_2to3(self):
+        assert True
     def setUp(self):
         self.dl_dir = os.path.join(os.getenv('tmp'), "".join([random.choice(string.ascii_letters+string.digits) for i in range(8)]), '')
         while os.path.exists(self.dl_dir):
@@ -24,12 +26,9 @@ class TestSmartDL(unittest.TestCase):
                                         "http://www.bevc.net/dl/7za920.zip",
                                         "http://ftp.jaist.ac.jp/pub/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip",
                                         "http://www.mirrorservice.org/sites/downloads.sourceforge.net/s/se/sevenzip/7-Zip/9.20/7za920.zip"]
-                                        
     def test_dependencies(self):
+        from concurrent import futures
         self.assertTrue(sys.version_info >= (2,6))
-        
-        if sys.version_info < (3,2):
-            from concurrent import futures
     
     def test_download(self):
         obj = SmartDL(self.default_7za920_mirrors, dest=self.dl_dir, progress_bar=False)
@@ -87,6 +86,10 @@ class TestSmartDL(unittest.TestCase):
         obj.wait()
         self.assertFalse(obj.isSuccessful())
         # self.assertTrue(isinstance(obj.get_errors()[-1], pySmartDL.CanceledException), msg=str(obj.get_errors()[-1]))
+        
+def test_suite():
+    suite = unittest.makeSuite(TestSmartDL)
+    return suite
 
 if __name__ == '__main__':
     if sys.version_info < (2,7):
