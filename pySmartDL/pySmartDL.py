@@ -8,6 +8,7 @@ import threading
 import time
 import math
 import tempfile
+import base64
 import hashlib
 import logging
 from urlparse import urlparse
@@ -20,7 +21,7 @@ import utils
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 2
-__version_micro__ = 1
+__version_micro__ = 2
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
@@ -128,6 +129,19 @@ class SmartDL:
         return 'SmartDL(r"%s", dest=r"%s")' % (self.url, self.dest)
     def __repr__(self):
         return "<SmartDL %s>" % (self.url)
+        
+    def add_basic_authentication(self, username, password):
+        '''
+        Uses HTTP Basic Access authentication for the connection.
+        
+        :param username: Username.
+        :type username: string
+        :param password: Password.
+        :type password: string
+        '''
+        auth_string = '%s:%s' % (username, password)
+        base64string = base64.standard_b64encode(auth_string.encode('utf-8'))
+        self.headers['Authorization'] = b"Basic " + base64string
         
     def add_hash_verification(self, algorithm, hash):
         '''

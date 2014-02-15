@@ -5,6 +5,9 @@ Below you find a list with the added features, changes and fixes for
 each version.
 
 ======================
+(Version 1.2.2 beta; 15/02/14)
+- NEW: HTTP Basic Access authentication.
+
 (Version 1.2.1 beta; 13/02/14)
 - NEW: Fetching UNIX hash sums format support.
 - FIX: Few minor typos.

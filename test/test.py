@@ -4,9 +4,10 @@ import sys
 import random
 import time
 import string
+import json
 import unittest
 
-# sys.path.append(r'..')
+sys.path.append('..')
 from pySmartDL import SmartDL, HashFailedException, CanceledException
 import pySmartDL
 
@@ -86,6 +87,14 @@ class TestSmartDL(unittest.TestCase):
         obj.wait()
         self.assertFalse(obj.isSuccessful())
         # self.assertTrue(isinstance(obj.get_errors()[-1], pySmartDL.CanceledException), msg=str(obj.get_errors()[-1]))
+        
+    def test_basic_auth(self):
+        basic_auth_test_url = "http://httpbin.org/basic-auth/user/passwd"
+        obj = SmartDL(basic_auth_test_url, progress_bar=False)
+        obj.add_basic_authentication('user', 'passwd')
+        obj.start()
+        data = obj.get_data()
+        self.assertTrue(json.loads(data)['authenticated'])
         
 def test_suite():
     suite = unittest.makeSuite(TestSmartDL)
