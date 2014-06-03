@@ -113,7 +113,7 @@ def get_filesize(url, timeout=15):
     :returns: Size in bytes.
     :rtype: int
     '''
-    url = url_fix(url)
+    # url = url_fix(url)
     try:
         urlObj = urllib2.urlopen(url, timeout=timeout)
     except (urllib2.HTTPError, urllib2.URLError) as e:

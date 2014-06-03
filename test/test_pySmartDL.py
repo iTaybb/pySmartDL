@@ -8,7 +8,6 @@ import json
 import unittest
 
 sys.path.append('..')
-from pySmartDL import SmartDL, HashFailedException, CanceledException
 import pySmartDL
 
 #
@@ -32,7 +31,7 @@ class TestSmartDL(unittest.TestCase):
         self.assertTrue(sys.version_info >= (2,6))
     
     def test_download(self):
-        obj = SmartDL(self.default_7za920_mirrors, dest=self.dl_dir, progress_bar=False)
+        obj = pySmartDL.SmartDL(self.default_7za920_mirrors, dest=self.dl_dir, progress_bar=False)
         obj.start()
 
         data = obj.get_data(binary=True, bytes=2)
@@ -44,29 +43,29 @@ class TestSmartDL(unittest.TestCase):
     
     def test_mirrors(self):
         urls = ["http://totally_fake_website/7za.zip" ,"http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"]
-        obj = SmartDL(urls, dest=self.dl_dir, progress_bar=False)
+        obj = pySmartDL.SmartDL(urls, dest=self.dl_dir, progress_bar=False)
         obj.start()
         
         self.assertTrue(obj.isSuccessful())
         
     def test_hash(self):
-        obj = SmartDL(self.default_7za920_mirrors, progress_bar=False)
+        obj = pySmartDL.SmartDL(self.default_7za920_mirrors, progress_bar=False)
         obj.add_hash_verification('sha256' ,'2a3afe19c180f8373fa02ff00254d5394fec0349f5804e0ad2f6067854ff28ac') # good hash
         obj.start(blocking=False) # no exceptions
         obj.wait()
         
         self.assertTrue(obj.isSuccessful())
         
-        obj = SmartDL(self.default_7za920_mirrors, progress_bar=False)
+        obj = pySmartDL.SmartDL(self.default_7za920_mirrors, progress_bar=False)
         obj.add_hash_verification('sha256' ,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa') # bad hash
         obj.start(blocking=False) # no exceptions
         obj.wait()
         
         self.assertFalse(obj.isSuccessful())
-        self.assertTrue(isinstance(obj.get_errors()[-1], HashFailedException))
+        self.assertTrue(isinstance(obj.get_errors()[-1], pySmartDL.HashFailedException))
         
     def test_pause_unpause_stop(self):
-        obj = SmartDL(self.default_7za920_mirrors, dest=self.dl_dir, progress_bar=False)
+        obj = pySmartDL.SmartDL(self.default_7za920_mirrors, dest=self.dl_dir, progress_bar=False)
         obj.start(blocking=False)
         
         while not obj.get_dl_size():
@@ -90,7 +89,7 @@ class TestSmartDL(unittest.TestCase):
         
     def test_basic_auth(self):
         basic_auth_test_url = "http://httpbin.org/basic-auth/user/passwd"
-        obj = SmartDL(basic_auth_test_url, progress_bar=False)
+        obj = pySmartDL.SmartDL(basic_auth_test_url, progress_bar=False)
         obj.add_basic_authentication('user', 'passwd')
         obj.start()
         data = obj.get_data()

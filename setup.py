@@ -1,7 +1,7 @@
 # Copyright (C) 2014 Itay Brandes
 import os
 import sys
-from setuptools import setup
+from setuptools import setup, find_packages
 
 extra = {}
 if sys.version_info < (3, 2):
@@ -11,15 +11,15 @@ if sys.version_info >= (3,):
 
 setup(
     name='pySmartDL',
-    version='1.2.2',
+    version='1.2.3',
     url='http://pypi.python.org/pypi/pySmartDL/',
     author='Itay Brandes',
     author_email='itay.brandes+pysmartdl@gmail.com',
     license='Public Domain',
-    packages=['pySmartDL'],
+    packages=find_packages(),
     description='A Smart Download Manager for Python',
     long_description=open('README.md').read(),
-    test_suite = "test.test",
+    test_suite = "test.test_pySmartDL.test_suite",
     classifiers=(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

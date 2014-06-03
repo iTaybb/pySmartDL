@@ -21,7 +21,7 @@ import utils
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 2
-__version_micro__ = 2
+__version_micro__ = 3
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
@@ -54,6 +54,8 @@ class SmartDL:
     :type dest: string
     :param progress_bar: If True, prints a progress bar to the `stdout stream <http://docs.python.org/2/library/sys.html#sys.stdout>`_. Default is `True`.
     :type progress_bar: bool
+	:param fix_urls: If true, attempts to fix urls with unsafe characters.
+	:type fix_urls: bool
     :param logger: An optional logger.
     :type logger: `logging.Logger` instance
     :param connect_default_logger: If true, connects a default logger to the class.
@@ -69,9 +71,10 @@ class SmartDL:
             * If no path is provided, `%TEMP%/pySmartDL/` will be used.
     '''
     
-    def __init__(self, urls, dest=None, progress_bar=True, logger=None, connect_default_logger=False):
+    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, logger=None, connect_default_logger=False):
         self.mirrors = [urls] if isinstance(urls, basestring) else urls
-        self.mirrors = [utils.url_fix(x) for x in self.mirrors]
+        if fix_urls:
+            self.mirrors = [utils.url_fix(x) for x in self.mirrors]
         self.url = self.mirrors.pop(0)
         
         fn = os.path.basename(urlparse(self.url).path)
@@ -219,9 +222,12 @@ class SmartDL:
             blocking = self._start_func_blocking
         else:
             self._start_func_blocking = blocking
-            
-        self.logger.debug('1 link and %d mirrors are loaded.' % len(self.mirrors))
-            
+        
+        if self.mirrors:
+            self.logger.debug('One URL and %d mirrors are loaded.' % len(self.mirrors))
+        else:
+            self.logger.debug('One URL is loaded.')
+        
         if self.verify_hash and os.path.exists(self.dest):
             with open(self.dest, 'rb') as f:
                 hash = hashlib.new(self.hash_algorithm, f.read()).hexdigest()
