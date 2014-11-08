@@ -257,7 +257,7 @@ class SmartDL:
         try:
             self.filesize = int(urlObj.headers["Content-Length"])
             self.logger.debug("Content-Length is %d (%s)." % (self.filesize, utils.sizeof_human(self.filesize)))
-        except IndexError:
+        except (IndexError,KeyError):
             self.logger.warning("Server did not send Content-Length. Filesize is unknown.")
             self.filesize = 0
             
