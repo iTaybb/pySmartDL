@@ -5,6 +5,9 @@ Below you find a list with the added features, changes and fixes for
 each version.
 
 ======================
+(Version 1.2.4 beta; 02/12/14)
+- FIX: Issue #1 - fix KeyError exception (thanks to il-katta)
+
 (Version 1.2.3 beta; 04/06/14)
 - NEW: Added fix_urls as an option.
 - IMPROVE: Better testing & package handling.
@@ -37,7 +40,6 @@ each version.
 - IMPROVE: Shows human-readable filesizes and transfer rates.
 - FIX: Now setup.py test works.
 - FIX: Few more bugfixes.
-
 
 (Version 1.0.0 alpha; 01/01/14)
 - first alpha beta release

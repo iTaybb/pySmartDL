@@ -1,4 +1,4 @@
-# Copyright (C) 2014 Itay Brandes
+# Copyright (C) 2014-2015 Itay Brandes
 
 import os
 import sys
@@ -21,7 +21,7 @@ import utils
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 2
-__version_micro__ = 3
+__version_micro__ = 4
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
@@ -257,7 +257,7 @@ class SmartDL:
         try:
             self.filesize = int(urlObj.headers["Content-Length"])
             self.logger.debug("Content-Length is %d (%s)." % (self.filesize, utils.sizeof_human(self.filesize)))
-        except (IndexError,KeyError):
+        except (IndexError, KeyError):
             self.logger.warning("Server did not send Content-Length. Filesize is unknown.")
             self.filesize = 0
             

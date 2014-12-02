@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2014 Itay Brandes
+# Copyright (C) 2014-2015 Itay Brandes
 '''
 The Utils class contains many functions for project-wide use.
 '''

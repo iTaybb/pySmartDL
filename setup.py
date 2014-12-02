@@ -1,4 +1,4 @@
-# Copyright (C) 2014 Itay Brandes
+# Copyright (C) 2014-2015 Itay Brandes
 import os
 import sys
 from setuptools import setup, find_packages
@@ -11,7 +11,7 @@ if sys.version_info >= (3,):
 
 setup(
     name='pySmartDL',
-    version='1.2.3',
+    version='1.2.4',
     url='http://pypi.python.org/pypi/pySmartDL/',
     author='Itay Brandes',
     author_email='itay.brandes+pysmartdl@gmail.com',
@@ -31,6 +31,7 @@ setup(
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+		'Programming Language :: Python :: 3.5',
         "License :: Public Domain",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX",

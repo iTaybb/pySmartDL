@@ -59,4 +59,4 @@ Requirements
  * Python 3.0 or greater.
  * For versions before Python 3.2, the `futures backport  <https://pypi.python.org/pypi/futures>`_ package is also required.
 
-Copyright (C) 2014 Itay Brandes.
+Copyright (C) 2014-2015 Itay Brandes.
