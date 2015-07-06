@@ -77,7 +77,7 @@ class SmartDL:
             self.mirrors = [utils.url_fix(x) for x in self.mirrors]
         self.url = self.mirrors.pop(0)
         
-        fn = os.path.basename(urlparse(self.url).path)
+        fn = urllib2.unquote(os.path.basename(urlparse(self.url).path)).decode('utf-8')
         self.dest = dest or os.path.join(tempfile.gettempdir(), 'pySmartDL', fn)
         if self.dest[-1] == os.sep:
             if os.path.exists(self.dest[:-1]) and os.path.isfile(self.dest[:-1]):
