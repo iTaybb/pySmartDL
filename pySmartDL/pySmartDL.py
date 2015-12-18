@@ -255,7 +255,7 @@ class SmartDL:
                 raise
         
         try:
-            self.filesize = int(urlObj.headers["Content-Length"])
+            self.filesize = int(urlObj.headers["Content-Length"] if "Content-Length" in urlObj.headers else "0")
             self.logger.debug("Content-Length is %d (%s)." % (self.filesize, utils.sizeof_human(self.filesize)))
         except (IndexError, KeyError):
             self.logger.warning("Server did not send Content-Length. Filesize is unknown.")
@@ -761,7 +761,7 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
         else:
             try:
                 meta = urlObj.info()
-                filesize = int(meta.getheaders("Content-Length")[0])
+                filesize = int(meta["Content-Length"] if "Content-Length" in meta else "0")
                 logger.debug("Content-Length is %d." % filesize)
             except IndexError:
                 logger.warning("Server did not send Content-Length.")
