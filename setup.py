@@ -11,7 +11,7 @@ if sys.version_info >= (3,):
 
 setup(
     name='pySmartDL',
-    version='1.2.4',
+    version='1.2.5',
     url='http://pypi.python.org/pypi/pySmartDL/',
     author='Itay Brandes',
     author_email='itay.brandes+pysmartdl@gmail.com',
