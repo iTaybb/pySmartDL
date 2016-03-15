@@ -31,7 +31,8 @@ def combine_files(parts, dest):
         with open(dest, 'wb') as output:
             for part in parts:
                 with open(part, 'rb') as f:
-                    output.writelines(f.readlines())
+                    for line in f:
+                        output.write(line)
                 os.remove(part)
 
 def url_fix(s, charset='utf-8'):
