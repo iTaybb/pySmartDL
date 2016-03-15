@@ -21,7 +21,7 @@ import utils
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 2
-__version_micro__ = 4
+__version_micro__ = 5
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
@@ -71,7 +71,8 @@ class SmartDL:
             * If no path is provided, `%TEMP%/pySmartDL/` will be used.
     '''
     
-    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, logger=None, connect_default_logger=False):
+    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, logger=None, connect_default_logger=False,
+                 threads_count=5):
         self.mirrors = [urls] if isinstance(urls, basestring) else urls
         if fix_urls:
             self.mirrors = [utils.url_fix(x) for x in self.mirrors]
@@ -96,7 +97,7 @@ class SmartDL:
             self.logger = utils.DummyLogger()
         
         self.headers = {'User-Agent': utils.get_random_useragent()}
-        self.threads_count = 5
+        self.threads_count = threads_count
         self.timeout = 4
         self.current_attemp = 1 
         self.attemps_limit = 4
