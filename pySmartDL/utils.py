@@ -25,12 +25,15 @@ def combine_files(parts, dest):
     :type dest: string
     
     '''
-    with open(dest, 'wb') as output:
-        for part in parts:
-            with open(part, 'rb') as f:
-                output.writelines(f.readlines())
-            os.remove(part)
-            
+    if len(parts) == 1:
+        os.rename(parts[0],dest)
+    else:
+        with open(dest, 'wb') as output:
+            for part in parts:
+                with open(part, 'rb') as f:
+                    output.writelines(f.readlines())
+                os.remove(part)
+
 def url_fix(s, charset='utf-8'):
     '''
     Sometimes you get an URL by a user that just isn't a real
