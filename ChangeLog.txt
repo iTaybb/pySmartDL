@@ -5,6 +5,12 @@ Below you find a list with the added features, changes and fixes for
 each version.
 
 ======================
+(Version 1.2.5 beta; 04/01/17)
+- NEW: Added support for Python 3.6.
+- IMPROVE: Updated the user agents list.
+- IMPROVE: Less memory-hungry hashing function.
+- FIX: Bug fixes.
+
 (Version 1.2.4 beta; 02/12/14)
 - FIX: Issue #1 - fix KeyError exception (thanks to il-katta)
 

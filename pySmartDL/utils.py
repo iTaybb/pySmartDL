@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2014-2015 Itay Brandes
+# Copyright (C) 2014-2017 Itay Brandes
 '''
 The Utils class contains many functions for project-wide use.
 '''
@@ -270,6 +270,7 @@ class DummyLogger(object):
         
 class ManagedThreadPoolExecutor(futures.ThreadPoolExecutor):
     '''
+	Managed Thread Pool Executor. A subclass of ThreadPoolExecutor.
     '''
     def __init__(self, max_workers):
         futures.ThreadPoolExecutor.__init__(self, max_workers)

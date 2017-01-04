@@ -1,4 +1,4 @@
-# Copyright (C) 2014-2015 Itay Brandes
+# Copyright (C) 2014-2017 Itay Brandes
 
 import os
 import sys
@@ -21,7 +21,7 @@ import utils
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 2
-__version_micro__ = 4
+__version_micro__ = 5
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
 DEFAULT_LOGGER_CREATED = False
 
@@ -57,6 +57,8 @@ class SmartDL:
     :type progress_bar: bool
 	:param fix_urls: If true, attempts to fix urls with unsafe characters.
 	:type fix_urls: bool
+	:param threads: Number of threads to use.
+	:type threads: int
     :param logger: An optional logger.
     :type logger: `logging.Logger` instance
     :param connect_default_logger: If true, connects a default logger to the class.
@@ -72,7 +74,7 @@ class SmartDL:
             * If no path is provided, `%TEMP%/pySmartDL/` will be used.
     '''
     
-    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, logger=None, connect_default_logger=False):
+    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, logger=None, connect_default_logger=False):
         global DEFAULT_LOGGER_CREATED
         
         self.mirrors = [urls] if isinstance(urls, basestring) else urls
@@ -94,22 +96,22 @@ class SmartDL:
         if logger:
             self.logger = logger
         elif connect_default_logger:
-			if not DEFAULT_LOGGER_CREATED:
-				self.logger = utils.create_debugging_logger()
-				DEFAULT_LOGGER_CREATED = True
-			else:
-				self.logger = logging.getLogger('pySmartDL')
+            if not DEFAULT_LOGGER_CREATED:
+                self.logger = utils.create_debugging_logger()
+                DEFAULT_LOGGER_CREATED = True
+            else:
+                self.logger = logging.getLogger('pySmartDL')
         else:
             self.logger = utils.DummyLogger()
         
         self.headers = {'User-Agent': utils.get_random_useragent()}
-        self.threads_count = 5
+        self.threads_count = threads
         self.timeout = 4
         self.current_attemp = 1 
         self.attemps_limit = 4
         self.minChunkFile = 1024**2*2 # 2MB
         self.filesize = 0
-        self.shared_var = multiprocessing.Value(c_int, 0) # a ctypes var that counts the bytes already downloaded
+        self.shared_var = multiprocessing.Value(c_int, 0)  # a ctypes var that counts the bytes already downloaded
         self.thread_shared_cmds = {}
         self.status = "ready"
         self.verify_hash = False
@@ -133,6 +135,7 @@ class SmartDL:
             self.logger.warning('Directory "%s" does not exist. Creating it...' % os.path.dirname(self.dest))
             os.makedirs(os.path.dirname(self.dest))
         
+        self.logger.info("Creating a ThreadPool of %d thread(s).", self.threads_count)
         self.pool = utils.ManagedThreadPoolExecutor(self.threads_count)
         
     def __str__(self):
@@ -463,7 +466,7 @@ class SmartDL:
             self.thread_shared_cmds['pause'] = ""
     def unpause(self):
         '''
-        Pauses the download.
+        Continues the download.
         '''
         if self.status == "paused" and 'pause' in self.thread_shared_cmds:
             self.status = "downloading"
@@ -599,7 +602,7 @@ class ControlThread(threading.Thread):
             if self.obj.filesize:
                 print r"[*] %s / %s @ %s/s %s [100%%, 0s left]    " % (utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.dl_speed), utils.progress_bar(1.0))
             else:
-                print r"[*] %s / %s @ %s/s    " % (utils.sizeof_human(self.shared_var.value), self.shared_var.value / 1024.0**2, utils.sizeof_human(self.dl_speed))
+                print r"[*] %s / %s @ %s/s    " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.dl_speed))
                 
         t2 = time.time()
         self.dl_time = float(t2-t1)

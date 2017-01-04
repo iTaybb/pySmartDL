@@ -1,17 +1,17 @@
-# Copyright (C) 2014-2015 Itay Brandes
+# Copyright (C) 2014-2017 Itay Brandes
 import os
 import sys
 from setuptools import setup, find_packages
 
 extra = {}
 if sys.version_info < (3, 2):
-    extra['install_requires'] = "futures >= 2.1.6" # backport of py32 concurrent.futures module
+    extra['install_requires'] = "futures >= 2.1.6"  # backport of py32 concurrent.futures module
 if sys.version_info >= (3,):
     extra['use_2to3'] = True
 
 setup(
     name='pySmartDL',
-    version='1.2.4',
+    version='1.2.5',
     url='http://pypi.python.org/pypi/pySmartDL/',
     author='Itay Brandes',
     author_email='itay.brandes+pysmartdl@gmail.com',
@@ -32,6 +32,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
 		'Programming Language :: Python :: 3.5',
+		'Programming Language :: Python :: 3.6',
         "License :: Public Domain",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX",
