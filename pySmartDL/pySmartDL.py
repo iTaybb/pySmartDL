@@ -115,7 +115,7 @@ class SmartDL:
         self.control_thread = None
         
         if not os.path.exists(os.path.dirname(self.dest)):
-            self.logger.debug('Folder "%s" does not exist. Creating...' % os.path.dirname(self.dest))
+            self.logger.info('Folder "%s" does not exist. Creating...' % os.path.dirname(self.dest))
             os.makedirs(os.path.dirname(self.dest))
         if not utils.is_HTTPRange_supported(self.url):
             self.logger.warning("Server does not support HTTPRange. threads_count is set to 1.")
@@ -184,7 +184,7 @@ class SmartDL:
         folder = os.path.dirname(self.url)
         orig_basename = os.path.basename(self.url)
         
-        self.logger.debug("Looking for SUMS files...")
+        self.logger.info("Looking for SUMS files...")
         for filename in default_sums_filenames:
             try:
                 sums_url = "%s/%s" % (folder, filename)
@@ -194,7 +194,7 @@ class SmartDL:
                 
                 for line in data:
                     if orig_basename.lower() in line.lower():
-                        self.logger.debug("Found a matching hash in %s" % sums_url)
+                        self.logger.info("Found a matching hash in %s" % sums_url)
                         algo = filename.rstrip('SUMS')
                         hash = line.split(' ')[0]
                         self.add_hash_verification(algo, hash)
@@ -224,24 +224,24 @@ class SmartDL:
             self._start_func_blocking = blocking
         
         if self.mirrors:
-            self.logger.debug('One URL and %d mirrors are loaded.' % len(self.mirrors))
+            self.logger.info('One URL and %d mirrors are loaded.' % len(self.mirrors))
         else:
-            self.logger.debug('One URL is loaded.')
+            self.logger.info('One URL is loaded.')
         
         if self.verify_hash and os.path.exists(self.dest):
             if get_file_hash(self.hash_algorithm, self.dest) == self.hash_code:
-                self.logger.debug("Destination '%s' already exists, and the hash matches. No need to download." % self.dest)
+                self.logger.info("Destination '%s' already exists, and the hash matches. No need to download." % self.dest)
                 self.status = 'finished'
                 return
         
-        self.logger.debug("Downloading '%s' to '%s'..." % (self.url, self.dest))
+        self.logger.info("Downloading '%s' to '%s'..." % (self.url, self.dest))
         req = urllib2.Request(self.url, headers=self.headers)
         try:
             urlObj = urllib2.urlopen(req, timeout=self.timeout)
         except (urllib2.HTTPError, urllib2.URLError), e:
             self.errors.append(e)
             if self.mirrors:
-                self.logger.debug("%s. Trying next mirror..." % unicode(e))
+                self.logger.info("%s. Trying next mirror..." % unicode(e))
                 self.url = self.mirrors.pop(0)
                 self.start(blocking)
                 return
@@ -254,7 +254,7 @@ class SmartDL:
         
         try:
             self.filesize = int(urlObj.headers["Content-Length"])
-            self.logger.debug("Content-Length is %d (%s)." % (self.filesize, utils.sizeof_human(self.filesize)))
+            self.logger.info("Content-Length is %d (%s)." % (self.filesize, utils.sizeof_human(self.filesize)))
         except (IndexError, KeyError):
             self.logger.warning("Server did not send Content-Length. Filesize is unknown.")
             self.filesize = 0
@@ -262,9 +262,9 @@ class SmartDL:
         args = _calc_chunk_size(self.filesize, self.threads_count, self.minChunkFile)
         bytes_per_thread = args[0][1]-args[0][0]
         if len(args)>1:
-            self.logger.debug("Launching %d threads (downloads %s/Thread)." % (len(args),  utils.sizeof_human(bytes_per_thread)))
+            self.logger.info("Launching %d threads (downloads %s/Thread)." % (len(args),  utils.sizeof_human(bytes_per_thread)))
         else:
-            self.logger.debug("Launching 1 thread.")
+            self.logger.info("Launching 1 thread.")
         
         self.status = "downloading"
         
@@ -585,7 +585,7 @@ class ControlThread(threading.Thread):
             time.sleep(0.1)
             
         if self.obj._killed:
-            self.logger.debug("File download process has been stopped.")
+            self.logger.info("File download process has been stopped.")
             return
             
         if self.progress_bar:
@@ -603,7 +603,7 @@ class ControlThread(threading.Thread):
         self.obj.pool.shutdown()
         self.obj.status = "finished"
         if not self.obj.errors:
-            self.logger.debug("File downloaded within %.2f seconds." % self.dl_time)
+            self.logger.info("File downloaded within %.2f seconds." % self.dl_time)
             
     def get_eta(self):
         if self.eta <= 0 or self.obj.status == 'paused':
@@ -696,9 +696,9 @@ def post_threadpool_actions(pool, args, expected_filesize, SmartDL_obj):
         hash = get_file_hash(SmartDL_obj.hash_algorithm, dest_path)
 	
         if hash == SmartDL_obj.hash_code:
-            SmartDL_obj.logger.debug('Hash verification succeeded.')
+            SmartDL_obj.logger.info('Hash verification succeeded.')
         else:
-            SmartDL_obj.logger.debug('Hash verification failed.')
+            SmartDL_obj.logger.info('Hash verification failed.')
             SmartDL_obj.try_next_mirror(HashFailedException(os.path.basename(dest_path), hash, SmartDL_obj.hash_code))
     
 def _calc_chunk_size(filesize, threads, minChunkFile):
@@ -729,7 +729,7 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
     if endByte:
         headers['Range'] = 'bytes=%d-%d' % (startByte, endByte)
     
-    logger.debug("Downloading '%s' to '%s'..." % (url, dest))
+    logger.info("Downloading '%s' to '%s'..." % (url, dest))
     req = urllib2.Request(url, headers=headers)
     try:
         urlObj = urllib2.urlopen(req, timeout=timeout)
@@ -759,7 +759,7 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
             try:
                 meta = urlObj.info()
                 filesize = int(meta.getheaders("Content-Length")[0])
-                logger.debug("Content-Length is %d." % filesize)
+                logger.info("Content-Length is %d." % filesize)
             except IndexError:
                 logger.warning("Server did not send Content-Length.")
         
