@@ -229,12 +229,10 @@ class SmartDL:
             self.logger.debug('One URL is loaded.')
         
         if self.verify_hash and os.path.exists(self.dest):
-            with open(self.dest, 'rb') as f:
-                hash = hashlib.new(self.hash_algorithm, f.read()).hexdigest()
-                if hash == self.hash_code:
-                    self.logger.debug("Destination '%s' already exists, and the hash matches. No need to download." % self.dest)
-                    self.status = 'finished'
-                    return
+            if get_file_hash(self.hash_algorithm, self.dest) == self.hash_code:
+                self.logger.debug("Destination '%s' already exists, and the hash matches. No need to download." % self.dest)
+                self.status = 'finished'
+                return
         
         self.logger.debug("Downloading '%s' to '%s'..." % (self.url, self.dest))
         req = urllib2.Request(self.url, headers=self.headers)
@@ -694,10 +692,9 @@ def post_threadpool_actions(pool, args, expected_filesize, SmartDL_obj):
     utils.combine_files(*args)
     
     if SmartDL_obj.verify_hash:
-        dest_path = args[-1]
-        with open(dest_path, 'rb') as f:
-            hash = hashlib.new(SmartDL_obj.hash_algorithm, f.read()).hexdigest()
-            
+        dest_path = args[-1]            
+        hash = get_file_hash(SmartDL_obj.hash_algorithm, dest_path)
+	
         if hash == SmartDL_obj.hash_code:
             SmartDL_obj.logger.debug('Hash verification succeeded.')
         else:
@@ -806,3 +803,13 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
             f.write(buff)
             
     urlObj.close()
+	
+def get_file_hash(algorithm, path):
+    hashAlg = hashlib.new(algorithm)
+    with open(path, 'rb') as f:
+        readSize = 1024 * 1024 * 4
+        data = f.read(readSize)
+        while(data):
+            hashAlg.update(data)
+            data = f.read(readSize)
+    return hashAlg.hexdigest()

@@ -25,11 +25,16 @@ def combine_files(parts, dest):
     :type dest: string
     
     '''
-    with open(dest, 'wb') as output:
-        for part in parts:
-            with open(part, 'rb') as f:
-                output.writelines(f.readlines())
-            os.remove(part)
+    combineChunkSize = 1024 * 1024 * 4
+    
+	with open(dest, 'wb') as output:
+		for part in parts:
+			with open(part, 'rb') as input:
+				data = input.read(combineChunkSize)
+				while(data):
+					output.write(data)
+					data = input.read(combineChunkSize)
+			os.remove(part)
             
 def url_fix(s, charset='utf-8'):
     '''
