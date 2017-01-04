@@ -23,6 +23,7 @@ __version_mjaor__ = 1
 __version_minor__ = 2
 __version_micro__ = 4
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
+DEFAULT_LOGGER_CREATED = False
 
 class HashFailedException(Exception):
     "Raised when hash check fails."
@@ -91,7 +92,9 @@ class SmartDL:
         if logger:
             self.logger = logger
         elif connect_default_logger:
-            self.logger = utils.create_debugging_logger()
+			if not DEFAULT_LOGGER_CREATED:
+				self.logger = utils.create_debugging_logger()
+				DEFAULT_LOGGER_CREATED = True
         else:
             self.logger = utils.DummyLogger()
         

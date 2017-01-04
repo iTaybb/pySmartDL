@@ -16,22 +16,22 @@ from concurrent import futures # if python2, a backport is needed
 from math import log
 
 def combine_files(parts, dest):
-    '''
-    Combines files.
-    
-    :param parts: Source files.
-    :type parts: list of strings
-    :param dest: Destination file.
-    :type dest: string
-    
-    '''
-    combineChunkSize = 1024 * 1024 * 4
-    
+	'''
+	Combines files.
+
+	:param parts: Source files.
+	:type parts: list of strings
+	:param dest: Destination file.
+	:type dest: string
+
+	'''
+	combineChunkSize = 1024 * 1024 * 4
+
 	with open(dest, 'wb') as output:
 		for part in parts:
 			with open(part, 'rb') as input:
 				data = input.read(combineChunkSize)
-				while(data):
+				while data:
 					output.write(data)
 					data = input.read(combineChunkSize)
 			os.remove(part)
