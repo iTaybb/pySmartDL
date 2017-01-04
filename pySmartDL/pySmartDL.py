@@ -73,6 +73,8 @@ class SmartDL:
     '''
     
     def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, logger=None, connect_default_logger=False):
+        global DEFAULT_LOGGER_CREATED
+        
         self.mirrors = [urls] if isinstance(urls, basestring) else urls
         if fix_urls:
             self.mirrors = [utils.url_fix(x) for x in self.mirrors]
@@ -95,6 +97,8 @@ class SmartDL:
 			if not DEFAULT_LOGGER_CREATED:
 				self.logger = utils.create_debugging_logger()
 				DEFAULT_LOGGER_CREATED = True
+			else:
+				self.logger = logging.getLogger('pySmartDL')
         else:
             self.logger = utils.DummyLogger()
         

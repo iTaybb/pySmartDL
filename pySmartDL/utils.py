@@ -244,7 +244,7 @@ def create_debugging_logger():
     
     :rtype: `logging.Logger` instance
     '''
-    t_log = logging.getLogger('testingLog')
+    t_log = logging.getLogger('pySmartDL')
     t_log.setLevel(logging.DEBUG)
     console = logging.StreamHandler()
     console.setLevel(logging.DEBUG)
