@@ -12,8 +12,9 @@ import urllib2
 import random
 import logging
 import re
-from concurrent import futures # if python2, a backport is needed
+from concurrent import futures  # if python2, a backport is needed
 from math import log
+import shutil
 
 def combine_files(parts, dest):
 	'''
@@ -25,16 +26,19 @@ def combine_files(parts, dest):
 	:type dest: string
 
 	'''
-	combineChunkSize = 1024 * 1024 * 4
-
-	with open(dest, 'wb') as output:
-		for part in parts:
-			with open(part, 'rb') as input:
-				data = input.read(combineChunkSize)
-				while data:
-					output.write(data)
-					data = input.read(combineChunkSize)
-			os.remove(part)
+	chunkSize = 1024 * 1024 * 4
+	
+	if len(parts) == 1:
+		shutil.move(parts[0], dest)
+	else:
+		with open(dest, 'wb') as output:
+			for part in parts:
+				with open(part, 'rb') as input:
+					data = input.read(chunkSize)
+					while data:
+						output.write(data)
+						data = input.read(chunkSize)
+				os.remove(part)
             
 def url_fix(s, charset='utf-8'):
     '''
