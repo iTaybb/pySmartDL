@@ -1,5 +1,3 @@
-# Copyright (C) 2014-2017 Itay Brandes
-
 import os
 import sys
 import urllib2
