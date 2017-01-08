@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 import sys
 import random
@@ -84,7 +86,6 @@ class TestSmartDL(unittest.TestCase):
         obj.stop()
         obj.wait()
         self.assertFalse(obj.isSuccessful())
-        # self.assertTrue(isinstance(obj.get_errors()[-1], pySmartDL.CanceledException), msg=str(obj.get_errors()[-1]))
         
     def test_basic_auth(self):
         basic_auth_test_url = "http://httpbin.org/basic-auth/user/passwd"
@@ -93,6 +94,11 @@ class TestSmartDL(unittest.TestCase):
         obj.start()
         data = obj.get_data()
         self.assertTrue(json.loads(data)['authenticated'])
+        
+    def test_unicode(self):
+        url = u"http://he.wikipedia.org/wiki/ג'חנון"
+        obj = pySmartDL.SmartDL(url, progress_bar=False)
+        obj.start()
         
 def test_suite():
     suite = unittest.makeSuite(TestSmartDL)

@@ -128,7 +128,7 @@ def get_filesize(url, timeout=15):
         return 0
     try:
         file_size = int(urlObj.headers["Content-Length"])
-    except (IndexError,KeyError):
+    except (IndexError, KeyError, TypeError):
         return 0
         
     return file_size

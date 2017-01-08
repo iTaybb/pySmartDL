@@ -9,6 +9,7 @@ each version.
 - NEW: Added support for Python 3.6.
 - IMPROVE: Updated the user agents list.
 - IMPROVE: Less memory-hungry hashing function.
+- IMPROVE: Minor improvements.
 - FIX: Bug fixes.
 
 (Version 1.2.4 beta; 02/12/14)

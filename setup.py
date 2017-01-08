@@ -19,7 +19,7 @@ setup(
     description='A Smart Download Manager for Python',
     long_description=open('README.md').read(),
     test_suite = "test.test_pySmartDL.test_suite",
-    classifiers=(
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Environment :: Console',
@@ -37,6 +37,6 @@ setup(
         "Operating System :: POSIX",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Software Development :: Libraries :: Python Modules",
-    ),
+    ],
     **extra
 )

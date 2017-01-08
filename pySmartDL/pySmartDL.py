@@ -80,7 +80,9 @@ class SmartDL:
             self.mirrors = [utils.url_fix(x) for x in self.mirrors]
         self.url = self.mirrors.pop(0)
         
-        fn = urllib2.unquote(os.path.basename(urlparse(self.url).path)).decode('utf-8')
+        fn = urllib2.unquote(os.path.basename(urlparse(self.url).path))
+        if sys.version_info < (3, 0):
+            fn = fn.decode('utf-8')  # required only on python 2
         self.dest = dest or os.path.join(tempfile.gettempdir(), 'pySmartDL', fn)
         if self.dest[-1] == os.sep:
             if os.path.exists(self.dest[:-1]) and os.path.isfile(self.dest[:-1]):
