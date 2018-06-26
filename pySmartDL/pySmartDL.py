@@ -72,14 +72,22 @@ class SmartDL:
             * If no path is provided, `%TEMP%/pySmartDL/` will be used.
     '''
     
-    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, logger=None, connect_default_logger=False):
+    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, logger=None, connect_default_logger=False,proxy=None):
         global DEFAULT_LOGGER_CREATED
         
         self.mirrors = [urls] if isinstance(urls, basestring) else urls
         if fix_urls:
             self.mirrors = [utils.url_fix(x) for x in self.mirrors]
         self.url = self.mirrors.pop(0)
-        
+
+        if proxy is not None:
+            proxy = urllib2.ProxyHandler({
+                'http': proxy,
+                'https': proxy
+            })
+            opener = urllib2.build_opener(proxy)
+            urllib2.install_opener(opener)
+
         fn = urllib2.unquote(os.path.basename(urlparse(self.url).path))
         if sys.version_info < (3, 0):
             fn = fn.decode('utf-8')  # required only on python 2
