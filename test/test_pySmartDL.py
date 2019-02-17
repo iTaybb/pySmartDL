@@ -22,10 +22,11 @@ class TestSmartDL(unittest.TestCase):
             self.dl_dir = os.path.join(os.getenv('tmp'), "".join([random.choice(string.ascii_letters+string.digits) for i in range(8)]), '')
             
         self.default_7za920_mirrors = [
-            "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip",
+            "https://sourceforge.mirrorservice.org/s/se/sevenzip/7-Zip/9.20/7za920.zip",
             "http://www.bevc.net/dl/7za920.zip",
-            "http://ftp.jaist.ac.jp/pub/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip",
-            "http://www.mirrorservice.org/sites/downloads.sourceforge.net/s/se/sevenzip/7-Zip/9.20/7za920.zip"
+            "http://ftp.psu.ru/tools/7-zip/stable/7za920.zip",
+            "http://www.mirrorservice.org/sites/downloads.sourceforge.net/s/se/sevenzip/7-Zip/9.20/7za920.zip",
+            "http://helpdesk.cki.tl/7za920.zip"
         ]
 
     def set_dependencies(self):
@@ -43,7 +44,7 @@ class TestSmartDL(unittest.TestCase):
             self.assertEqual(data, 'PK')
     
     def test_mirrors(self):
-        urls = ["http://totally_fake_website/7za.zip", "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"]
+        urls = ["http://totally_fake_website/7za.zip", "http://www.bevc.net/dl/7za920.zip"]
         obj = pySmartDL.SmartDL(urls, dest=self.dl_dir, progress_bar=False)
         obj.start()
         
