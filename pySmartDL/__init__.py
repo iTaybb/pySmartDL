@@ -1,4 +1,4 @@
 from .pySmartDL import SmartDL, HashFailedException, CanceledException
-import utils
+from . import utils
 
 __version__ = pySmartDL.__version__

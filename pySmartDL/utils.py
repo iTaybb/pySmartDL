@@ -5,9 +5,9 @@ The Utils class contains many functions for project-wide use.
 
 import os
 import sys
-import urlparse
-import urllib
-import urllib2
+import urllib.parse
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import random
 import logging
 import re
@@ -58,12 +58,10 @@ def url_fix(s, charset='utf-8'):
                     
     (taken from `werkzeug.utils <http://werkzeug.pocoo.org/docs/utils/>`_)
     '''
-    if sys.version_info < (3, 0) and isinstance(s, unicode):
-        s = s.encode(charset, 'ignore')
-    scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
-    path = urllib.quote(path, '/%')
-    qs = urllib.quote_plus(qs, ':&=')
-    return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
+    scheme, netloc, path, qs, anchor = urllib.parse.urlsplit(s)
+    path = urllib.parse.quote(path, '/%')
+    qs = urllib.parse.quote_plus(qs, ':&=')
+    return urllib.parse.urlunsplit((scheme, netloc, path, qs, anchor))
     
 def progress_bar(progress, length=20):
     '''
@@ -103,8 +101,8 @@ def is_HTTPRange_supported(url, timeout=15):
         return False
     
     headers = {'Range': 'bytes=0-3'}
-    req = urllib2.Request(url, headers=headers)
-    urlObj = urllib2.urlopen(req, timeout=timeout)
+    req = urllib.request.Request(url, headers=headers)
+    urlObj = urllib.request.urlopen(req, timeout=timeout)
     filesize = int(urlObj.headers["Content-Length"])
     
     urlObj.close()
@@ -123,8 +121,8 @@ def get_filesize(url, timeout=15):
     '''
     # url = url_fix(url)
     try:
-        urlObj = urllib2.urlopen(url, timeout=timeout)
-    except (urllib2.HTTPError, urllib2.URLError) as e:
+        urlObj = urllib.request.urlopen(url, timeout=timeout)
+    except (urllib.error.HTTPError, urllib.error.URLError) as e:
         return 0
     try:
         file_size = int(urlObj.headers["Content-Length"])
@@ -172,7 +170,7 @@ def sizeof_human(num):
     
     :rtype: string
     '''
-    unit_list = zip(['B', 'kB', 'MB', 'GB', 'TB', 'PB'], [0, 0, 1, 2, 2, 2])
+    unit_list = list(zip(['B', 'kB', 'MB', 'GB', 'TB', 'PB'], [0, 0, 1, 2, 2, 2]))
     
     if num > 1:
         exponent = min(int(log(num, 1024)), len(unit_list) - 1)

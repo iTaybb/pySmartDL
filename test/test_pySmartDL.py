@@ -16,20 +16,20 @@ import pySmartDL
 #
 
 class TestSmartDL(unittest.TestCase):
-    def test_2to3(self):
-        assert True
     def setUp(self):
         self.dl_dir = os.path.join(os.getenv('tmp'), "".join([random.choice(string.ascii_letters+string.digits) for i in range(8)]), '')
         while os.path.exists(self.dl_dir):
             self.dl_dir = os.path.join(os.getenv('tmp'), "".join([random.choice(string.ascii_letters+string.digits) for i in range(8)]), '')
             
-        self.default_7za920_mirrors = [ "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip",
-                                        "http://www.bevc.net/dl/7za920.zip",
-                                        "http://ftp.jaist.ac.jp/pub/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip",
-                                        "http://www.mirrorservice.org/sites/downloads.sourceforge.net/s/se/sevenzip/7-Zip/9.20/7za920.zip"]
-    def test_dependencies(self):
-        from concurrent import futures
-        self.assertTrue(sys.version_info >= (2,6))
+        self.default_7za920_mirrors = [
+            "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip",
+            "http://www.bevc.net/dl/7za920.zip",
+            "http://ftp.jaist.ac.jp/pub/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip",
+            "http://www.mirrorservice.org/sites/downloads.sourceforge.net/s/se/sevenzip/7-Zip/9.20/7za920.zip"
+        ]
+
+    def set_dependencies(self):
+        self.assertTrue(sys.version_info >= (3, 4))
     
     def test_download(self):
         obj = pySmartDL.SmartDL(self.default_7za920_mirrors, dest=self.dl_dir, progress_bar=False)
@@ -43,7 +43,7 @@ class TestSmartDL(unittest.TestCase):
             self.assertEqual(data, 'PK')
     
     def test_mirrors(self):
-        urls = ["http://totally_fake_website/7za.zip" ,"http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"]
+        urls = ["http://totally_fake_website/7za.zip", "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"]
         obj = pySmartDL.SmartDL(urls, dest=self.dl_dir, progress_bar=False)
         obj.start()
         
@@ -96,7 +96,7 @@ class TestSmartDL(unittest.TestCase):
         self.assertTrue(json.loads(data)['authenticated'])
         
     def test_unicode(self):
-        url = u"http://he.wikipedia.org/wiki/ג'חנון"
+        url = "http://he.wikipedia.org/wiki/ג'חנון"
         obj = pySmartDL.SmartDL(url, progress_bar=False)
         obj.start()
         
@@ -105,7 +105,4 @@ def test_suite():
     return suite
 
 if __name__ == '__main__':
-    if sys.version_info < (2,7):
-        unittest.main()
-    else:
-        unittest.main(verbosity=2)
+    unittest.main(verbosity=2)
