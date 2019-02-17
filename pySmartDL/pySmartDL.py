@@ -520,6 +520,20 @@ class SmartDL:
         if human:
             return utils.sizeof_human(self.control_thread.get_dl_size())    
         return self.control_thread.get_dl_size()
+
+    def get_final_filesize(self, human=False):
+        '''
+        Get total download size in bytes.
+        
+        :param human: If true, returns a human-readable formatted string. Else, returns an int type number
+        :type human: bool
+        :rtype: int/string
+        '''
+        if not self.control_thread:
+            return 0
+        if human:
+            return utils.sizeof_human(self.control_thread.get_final_filesize())    
+        return self.control_thread.get_final_filesize()
     
     
     def get_data(self, binary=False, bytes=-1):
