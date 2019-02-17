@@ -5,9 +5,7 @@ The Utils class contains many functions for project-wide use.
 
 import os
 import sys
-import urllib.parse
 import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
 import random
 import logging
 import re
@@ -15,7 +13,7 @@ from concurrent import futures  # if python2, a backport is needed
 from math import log
 import shutil
 
-def combine_files(parts, dest):
+def combine_files(parts, dest, chunkSize = 1024 * 1024 * 4):
 	'''
 	Combines files.
 
@@ -23,10 +21,10 @@ def combine_files(parts, dest):
 	:type parts: list of strings
 	:param dest: Destination file.
 	:type dest: string
+    :param chunkSize: Fetching chunk size.
+	:type chunkSize: int
 
 	'''
-	chunkSize = 1024 * 1024 * 4
-	
 	if len(parts) == 1:
 		shutil.move(parts[0], dest)
 	else:
@@ -119,14 +117,10 @@ def get_filesize(url, timeout=15):
     :returns: Size in bytes.
     :rtype: int
     '''
-    # url = url_fix(url)
     try:
         urlObj = urllib.request.urlopen(url, timeout=timeout)
-    except (urllib.error.HTTPError, urllib.error.URLError) as e:
-        return 0
-    try:
         file_size = int(urlObj.headers["Content-Length"])
-    except (IndexError, KeyError, TypeError):
+    except (IndexError, KeyError, TypeError, urllib.error.HTTPError, urllib.error.URLError):
         return 0
         
     return file_size
@@ -182,19 +176,8 @@ def sizeof_human(num):
         quotient = float(num) / 1024**exponent
         unit, num_decimals = unit_list[exponent]
         
-        if sys.version_info >= (2, 7): # python2.7 supports comma seperators
-            format_string = '{:,.%sf} {}' % (num_decimals)
-            return format_string.format(quotient, unit)
-        else: # with python2.6, we have to do some ugly hacks
-            if quotient != int(quotient): # real float
-                x, y = str(quotient).split('.')
-                x = re.sub("(\d)(?=(\d{3})+(?!\d))", r"\1,", "%d" % int(x))
-                y = y[:num_decimals]
-                quotient = "%s.%s" % (x, y) if y else x
-                return "%s %s" % (quotient, unit)
-            else:
-                quotient = re.sub("(\d)(?=(\d{3})+(?!\d))", r"\1,", "%d" % quotient)
-                return "%s %s" % (quotient, unit)
+        format_string = '{:,.%sf} {}' % (num_decimals)
+        return format_string.format(quotient, unit)
             
     if num == 0:
         return '0 bytes'
@@ -224,13 +207,15 @@ def time_human(duration, fmt_short=False):
     if fmt_short:
         NAMES = ['s'*2, 'm'*2, 'h'*2, 'd'*2, 'w'*2, 'y'*2]
     else:
-        NAMES = [('second', 'seconds'),
-             ('minute', 'minutes'),
-             ('hour', 'hours'),
-             ('day', 'days'),
-             ('week', 'weeks'),
-             ('month', 'months'),
-             ('year', 'years')]
+        NAMES = [
+            ('second', 'seconds'),
+            ('minute', 'minutes'),
+            ('hour', 'hours'),
+            ('day', 'days'),
+            ('week', 'weeks'),
+            ('month', 'months'),
+            ('year', 'years')
+        ]
     
     result = []
     

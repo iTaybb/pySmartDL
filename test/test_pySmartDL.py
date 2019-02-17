@@ -38,10 +38,7 @@ class TestSmartDL(unittest.TestCase):
 
         data = obj.get_data(binary=True, bytes=2)
         
-        if sys.version_info >= (3,):
-            self.assertEqual(data, b'PK')
-        else:
-            self.assertEqual(data, 'PK')
+        self.assertEqual(data, b'PK')
     
     def test_mirrors(self):
         urls = ["http://totally_fake_website/7za.zip", "http://www.bevc.net/dl/7za920.zip"]
@@ -53,37 +50,50 @@ class TestSmartDL(unittest.TestCase):
     def test_hash(self):
         obj = pySmartDL.SmartDL(self.default_7za920_mirrors, progress_bar=False)
         obj.add_hash_verification('sha256' ,'2a3afe19c180f8373fa02ff00254d5394fec0349f5804e0ad2f6067854ff28ac') # good hash
-        obj.start(blocking=False) # no exceptions
+        obj.start(blocking=False)  # no exceptions
         obj.wait()
         
         self.assertTrue(obj.isSuccessful())
         
         obj = pySmartDL.SmartDL(self.default_7za920_mirrors, progress_bar=False)
-        obj.add_hash_verification('sha256' ,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa') # bad hash
-        obj.start(blocking=False) # no exceptions
+        obj.add_hash_verification('sha256' ,'a'*64)  # bad hash
+        obj.start(blocking=False)  # no exceptions
         obj.wait()
         
         self.assertFalse(obj.isSuccessful())
         self.assertTrue(isinstance(obj.get_errors()[-1], pySmartDL.HashFailedException))
         
-    def test_pause_unpause_stop(self):
+    def test_pause_unpause(self):
         obj = pySmartDL.SmartDL(self.default_7za920_mirrors, dest=self.dl_dir, progress_bar=False)
         obj.start(blocking=False)
         
         while not obj.get_dl_size():
-            time.sleep(0.2)
-            
-        time.sleep(1)
+            time.sleep(0.1)
+        
+        # pause
         obj.pause()
         time.sleep(0.5)
         dl_size = obj.get_dl_size()
+
+        # verify download has really stopped
         time.sleep(2.5)
         self.assertEqual(dl_size, obj.get_dl_size())
         
+        # continue
         obj.unpause()
-        time.sleep(0.5)
+        time.sleep(1)
         self.assertNotEqual(dl_size, obj.get_dl_size())
         
+        obj.wait()
+        self.assertTrue(obj.isSuccessful())
+
+    def test_stop(self):
+        obj = pySmartDL.SmartDL(self.default_7za920_mirrors, dest=self.dl_dir, progress_bar=False)
+        obj.start(blocking=False)
+
+        while not obj.get_dl_size():
+            time.sleep(0.1)
+
         obj.stop()
         obj.wait()
         self.assertFalse(obj.isSuccessful())
