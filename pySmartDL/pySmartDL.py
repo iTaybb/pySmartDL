@@ -242,14 +242,14 @@ class SmartDL:
                 self.status = 'finished'
                 return
         
-        self.logger.info("Downloading '%s' to '%s'..." % (self.url, self.dest))
+        self.logger.info("Downloading '{}' to '{}'...".format(self.url, self.dest))
         req = urllib.request.Request(self.url, headers=self.headers)
         try:
             urlObj = urllib.request.urlopen(req, timeout=self.timeout)
         except (urllib.error.HTTPError, urllib.error.URLError) as e:
             self.errors.append(e)
             if self.mirrors:
-                self.logger.info("%s. Trying next mirror..." % str(e))
+                self.logger.info("{} Trying next mirror...".format(str(e)))
                 self.url = self.mirrors.pop(0)
                 self.start(blocking)
                 return
@@ -262,7 +262,7 @@ class SmartDL:
         
         try:
             self.filesize = int(urlObj.headers["Content-Length"])
-            self.logger.info("Content-Length is %d (%s)." % (self.filesize, utils.sizeof_human(self.filesize)))
+            self.logger.info("Content-Length is {} ({}).".format(self.filesize, utils.sizeof_human(self.filesize)))
         except (IndexError, KeyError):
             self.logger.warning("Server did not send Content-Length. Filesize is unknown.")
             self.filesize = 0
@@ -270,7 +270,7 @@ class SmartDL:
         args = _calc_chunk_size(self.filesize, self.threads_count, self.minChunkFile)
         bytes_per_thread = args[0][1]-args[0][0]
         if len(args)>1:
-            self.logger.info("Launching %d threads (downloads %s/Thread)." % (len(args),  utils.sizeof_human(bytes_per_thread)))
+            self.logger.info("Launching {} threads (downloads {}/thread).".format(len(args),  utils.sizeof_human(bytes_per_thread)))
         else:
             self.logger.info("Launching 1 thread.")
         
@@ -286,7 +286,8 @@ class SmartDL:
                 copy.deepcopy(self.headers),
                 self.timeout,
                 self.shared_var,
-                self.thread_shared_cmds
+                self.thread_shared_cmds,
+                self.logger
             )
         
         self.post_threadpool_thread = threading.Thread(target=post_threadpool_actions, args=(self.pool, [[(self.dest+".%.3d" % i) for i in range(len(args))], self.dest], self.filesize, self))
@@ -313,7 +314,7 @@ class SmartDL:
         else:
             s = 'The maximum retry attempts reached'
             if eStr:
-                s += " (%s)" % eStr
+                s += " ({})".format(eStr)
             self.errors.append(urllib.error.HTTPError(self.url, "0", s, {}, StringIO()))
             self._failed = True
             
@@ -480,19 +481,23 @@ class SmartDL:
             self.status = "downloading"
             del self.thread_shared_cmds['pause']
     
-    # def limit_speed(self, kbytes=-1):
-    #     '''
-    #     Limits the download transfer speed.
+    def limit_speed(self, speed):
+        '''
+        Limits the download transfer speed.
         
-    #     :param kbytes: Number of Kilobytes to download per second. Negative values will not limit the speed. Default is `-1`.
-    #     :type kbytes: int
-    #     '''
-    #     if kbytes == 0:
-    #         self.pause()
-    #     elif kbytes > 0 and self.status == "downloading":
-    #         self.thread_shared_cmds['limit'] = kbytes/self.threads_count
-    #     else:
-    #         self.unpause()
+        :param speed: Speed in bytes per download per second. Negative values will not limit the speed. Default is `-1`.
+        :type speed: int
+        '''
+        if self.status == "downloading":
+            if speed == 0:
+                self.pause()
+            else:
+                self.unpause()
+
+        if speed > 0:
+            self.thread_shared_cmds['limit'] = speed/self.threads_count
+        elif 'limit' in self.thread_shared_cmds:
+            del self.thread_shared_cmds['limit']
         
     def get_dest(self):
         '''
@@ -602,6 +607,7 @@ class ControlThread(threading.Thread):
         
     def run(self):
         t1 = time.time()
+        self.logger.info("Control thread has been started.")
         
         while not self.obj.pool.done():
             self.dl_speed = self.calcDownloadSpeed(self.shared_var.value)
@@ -796,9 +802,9 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
             except IndexError:
                 logger.warning("Server did not send Content-Length.")
         
-        filesize_dl = 0 # total downloaded size
-        # limitspeed_timestamp = 0
-        # limitspeed_filesize = 0
+        filesize_dl = 0  # total downloaded size
+        limitspeed_timestamp = time.time()
+        limitspeed_filesize = 0
         block_sz = 8192
         while True:
             if thread_shared_cmds:
@@ -808,15 +814,19 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
                 if 'pause' in thread_shared_cmds:
                     time.sleep(0.2)
                     continue
-                # if 'limit' in thread_shared_cmds:
-                    # currect_time = int(time.time())
-                    # if limitspeed_timestamp == currect_time:
-                        # if limitspeed_filesize >= thread_shared_cmds['limit']:
-                            # time.sleep(0.05)
-                            # continue
-                    # else:
-                        # limitspeed_timestamp = currect_time
-                        # limitspeed_filesize = 0
+                if 'limit' in thread_shared_cmds:
+                    now = time.time()
+                    time_passed = now - limitspeed_timestamp
+                    if time_passed > 0.2:  # we only observe the limit after 200ms
+                        # if we passed the limit, we should
+                        if (filesize_dl-limitspeed_filesize)/time_passed >= thread_shared_cmds['limit']:
+                            time_to_sleep = (filesize_dl-limitspeed_filesize) / thread_shared_cmds['limit']
+                            logger.debug('Thread has downloaded {} in {}. Limit is {}/s. Slowing down...'.format(utils.sizeof_human(filesize_dl-limitspeed_filesize), utils.time_human(time_passed, fmt_short=True, show_ms=True), utils.sizeof_human(thread_shared_cmds['limit'])))
+                            time.sleep(time_to_sleep)
+                            continue
+                        else:
+                            limitspeed_timestamp = now
+                            limitspeed_filesize = filesize_dl
                 
             try:
                 buff = urlObj.read(block_sz)
@@ -830,7 +840,6 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
                 break
 
             filesize_dl += len(buff)
-            # limitspeed_filesize += len(buff)
             if shared_var:
                 shared_var.value += len(buff)
             f.write(buff)
