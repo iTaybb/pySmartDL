@@ -33,7 +33,7 @@ Download is as simple as creating an instance and launching it::
 	import os
 	from pySmartDL import SmartDL
 
-	url = "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"
+	url = "https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip"
 	dest = "C:\\Downloads\\" # or '~/Downloads/' on linux
 
 	obj = SmartDL(url, dest)
@@ -46,9 +46,7 @@ Download is as simple as creating an instance and launching it::
 Requirements
 ==============
 
- * Python 2.6 or greater.
- * Python 3.0 or greater.
- * For versions before Python 3.2, the `futures backport  <https://pypi.python.org/pypi/futures>`_ package is also required.
+ * Python 3.4 or greater.
 
 Documentation
 =====================================

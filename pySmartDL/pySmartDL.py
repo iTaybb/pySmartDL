@@ -277,16 +277,17 @@ class SmartDL:
         self.status = "downloading"
         
         for i, arg in enumerate(args):
-            req = self.pool.submit(     download,
-                                        self.url,
-                                        self.dest+".%.3d" % i,
-                                        arg[0],
-                                        arg[1],
-                                        copy.deepcopy(self.headers),
-                                        self.timeout,
-                                        self.shared_var,
-                                        self.thread_shared_cmds
-                                        )
+            req = self.pool.submit(
+                download,
+                self.url,
+                self.dest+".%.3d" % i,
+                arg[0],
+                arg[1],
+                copy.deepcopy(self.headers),
+                self.timeout,
+                self.shared_var,
+                self.thread_shared_cmds
+            )
         
         self.post_threadpool_thread = threading.Thread(target=post_threadpool_actions, args=(self.pool, [[(self.dest+".%.3d" % i) for i in range(len(args))], self.dest], self.filesize, self))
         self.post_threadpool_thread.daemon = True
@@ -342,6 +343,7 @@ class SmartDL:
             s = utils.time_human(self.control_thread.get_eta())
             return s if s else "TBD"
         return self.control_thread.get_eta()
+
     def get_speed(self, human=False):
         '''
         Get current transfer speed in bytes per second.
@@ -351,8 +353,9 @@ class SmartDL:
         :rtype: int/string
         '''
         if human:
-            return "%s/s" % utils.sizeof_human(self.control_thread.get_speed())
+            return "{}/s".format(utils.sizeof_human(self.control_thread.get_speed()))
         return self.control_thread.get_speed()
+
     def get_progress(self):
         '''
         Returns the current progress of the download, as a float between `0` and `1`.
@@ -364,6 +367,7 @@ class SmartDL:
         if self.control_thread.get_dl_size() <= self.filesize:
             return 1.0*self.control_thread.get_dl_size()/self.filesize
         return 1.0
+
     def get_progress_bar(self, length=20):
         '''
         Returns the current progress of the download as a string containing a progress bar.
@@ -376,6 +380,7 @@ class SmartDL:
         :rtype: string
         '''
         return utils.progress_bar(self.get_progress(), length)
+
     def isFinished(self):
         '''
         Returns if the task is finished.
@@ -387,6 +392,7 @@ class SmartDL:
         if self.status == "finished":
             return True
         return not self.post_threadpool_thread.is_alive()
+
     def isSuccessful(self):
         '''
         Returns if the download is successfull. It may fail in the following scenarios:
@@ -431,6 +437,7 @@ class SmartDL:
         :rtype: string
         '''
         return self.status
+
     def wait(self, raise_exceptions=False):
         '''
         Blocks until the download is finished.
@@ -448,6 +455,7 @@ class SmartDL:
         
         if self._failed and raise_exceptions:
             raise self.errors[-1]
+
     def stop(self):
         '''
         Stops the download.
@@ -455,6 +463,7 @@ class SmartDL:
         if self.status == "downloading":
             self.thread_shared_cmds['stop'] = ""
             self._killed = True
+
     def pause(self):
         '''
         Pauses the download.
@@ -462,6 +471,7 @@ class SmartDL:
         if self.status == "downloading":
             self.status = "paused"
             self.thread_shared_cmds['pause'] = ""
+
     def unpause(self):
         '''
         Continues the download.
@@ -471,16 +481,18 @@ class SmartDL:
             del self.thread_shared_cmds['pause']
     
     # def limit_speed(self, kbytes=-1):
-        # '''
-        # Limits the download transfer speed.
+    #     '''
+    #     Limits the download transfer speed.
         
-        # :param kbytes: Number of Kilobytes to download per second. Negative values will not limit the speed. Default is `-1`.
-        # :type kbytes: int
-        # '''
-        # if kbytes == 0:
-            # self.pause()
-        # if kbytes > 0 and self.status == "downloading":
-            # self.thread_shared_cmds['limit'] = 1.0*kbytes/self.threads_count
+    #     :param kbytes: Number of Kilobytes to download per second. Negative values will not limit the speed. Default is `-1`.
+    #     :type kbytes: int
+    #     '''
+    #     if kbytes == 0:
+    #         self.pause()
+    #     elif kbytes > 0 and self.status == "downloading":
+    #         self.thread_shared_cmds['limit'] = kbytes/self.threads_count
+    #     else:
+    #         self.unpause()
         
     def get_dest(self):
         '''
@@ -563,7 +575,7 @@ class SmartDL:
         :rtype: string
         
         .. WARNING::
-            The hashing algorithm must be supported on your system, as documented at `hashlib documentation page <http://docs.python.org/2/library/hashlib.html>`_.
+            The hashing algorithm must be supported on your system, as documented at `hashlib documentation page <http://docs.python.org/3/library/hashlib.html>`_.
         '''
         return hashlib.new(algorithm, self.get_data(binary=True)).hexdigest()
 
@@ -602,8 +614,7 @@ class ControlThread(threading.Thread):
                 else:
                     status = r"[*] %s / ??? MB @ %s/s   " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.dl_speed))
                 status = status + chr(8)*(len(status)+1)
-                print(status, end=' ')
-            
+                print(status, end='', flush=True)
             time.sleep(0.1)
             
         if self.obj._killed:
@@ -766,7 +777,7 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
             '''
             
             if retries > 0:
-                logger.warning("Thread didn't got the file it was expecting. Retrying (%d times left)..." % (retries-1))
+                logger.warning("Thread didn't got the file it was expecting. Retrying ({} times left)...".format(retries-1))
                 time.sleep(5)
                 return download(url, dest, startByte, endByte, headers, timeout, shared_var, thread_shared_cmds, logger, retries-1)
             else:
