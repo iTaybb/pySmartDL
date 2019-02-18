@@ -9,7 +9,7 @@ import urllib.request, urllib.parse, urllib.error
 import random
 import logging
 import re
-from concurrent import futures  # if python2, a backport is needed
+from concurrent import futures
 from math import log
 import shutil
 
@@ -74,7 +74,7 @@ def progress_bar(progress, length=20):
     :type length: int
     :rtype: string
     '''
-    length -= 2 # The brackets are 2 chars long.
+    length -= 2  # The brackets are 2 chars long.
     if progress < 0:
         progress = 0
     if progress > 1:
@@ -104,7 +104,7 @@ def is_HTTPRange_supported(url, timeout=15):
     filesize = int(urlObj.headers["Content-Length"])
     
     urlObj.close()
-    return (filesize != fullsize)
+    return filesize != fullsize
 
 def get_filesize(url, timeout=15):
     '''
@@ -184,7 +184,7 @@ def sizeof_human(num):
     if num == 1:
         return '1 byte'
 
-def time_human(duration, fmt_short=False):
+def time_human(duration, fmt_short=False, show_ms=False):
     '''
     Human-readable formatting for timing. Based on code from `here <http://stackoverflow.com/questions/6574329/how-can-i-produce-a-human-readable-difference-when-subtracting-two-unix-timestam>`_.
     
@@ -194,13 +194,16 @@ def time_human(duration, fmt_short=False):
     '9m49s'
     
     :param duration: Duration in seconds.
-    :type duration: int
+    :type duration: int/float
     :param fmt_short: Format as a short string (`47s` instead of `47 seconds`)
     :type fmt_short: bool
+    :param show_ms: Specify milliseconds in the string.
+    :type show_ms: bool
     :rtype: string
     '''
+    ms = int(duration % 1 * 1000)
     duration = int(duration)
-    if duration == 0:
+    if duration == 0 and (not show_ms or ms == 0):
         return "0s" if fmt_short else "0 seconds"
             
     INTERVALS = [1, 60, 3600, 86400, 604800, 2419200, 29030400]
@@ -224,6 +227,9 @@ def time_human(duration, fmt_short=False):
         if a > 0:
             result.append( (a, NAMES[i][1 % a]) )
             duration -= a * INTERVALS[i]
+
+    if show_ms and ms > 0:
+        result.append((ms, "ms" if fmt_short else "milliseconds"))
     
     if fmt_short:
         return "".join(["%s%s" % x for x in result])
@@ -239,8 +245,7 @@ def create_debugging_logger():
     t_log.setLevel(logging.DEBUG)
     console = logging.StreamHandler()
     console.setLevel(logging.DEBUG)
-    # console.setFormatter(logging.Formatter('[%(levelname)s@%(thread)d] %(message)s'))
-    console.setFormatter(logging.Formatter('[%(levelname)s] %(message)s'))
+    console.setFormatter(logging.Formatter('[%(levelname)s||%(thread)d] %(message)s'))
     t_log.addHandler(console)
     return t_log
     
