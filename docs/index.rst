@@ -11,6 +11,7 @@ Python Smart Download Manager -- pySmartDL
 * Built-in download acceleration (with the `multipart downloading technique <http://stackoverflow.com/questions/93642/how-do-download-accelerators-work>`_).
 * Mirrors support.
 * Pause/Unpause feature.
+* Speed limiting feature.
 * Hash checking.
 * Non-blocking, shows progress bar, download speed and eta.
 * Python 3 Support
@@ -28,12 +29,12 @@ Project Links
 Usage
 =====
 
-Download is as simple as creating an instance and launching it::
+Download is as simple as creating an instance and starting it::
 
 	import os
 	from pySmartDL import SmartDL
 
-	url = "https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip"
+	url = "https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip"
 	dest = "C:\\Downloads\\" # or '~/Downloads/' on linux
 
 	obj = SmartDL(url, dest)

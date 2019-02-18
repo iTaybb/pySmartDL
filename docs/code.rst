@@ -10,7 +10,7 @@ Basic usage::
 	import os
 	from pySmartDL import SmartDL
 
-	url = "https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip"
+	url = "https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip"
 	dest = "C:\\Downloads\\" # or '~/Downloads/' on linux
 
 	obj = SmartDL(url, dest)

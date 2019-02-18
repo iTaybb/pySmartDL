@@ -10,7 +10,7 @@ Example 1: Downloading a file and running it
 	import os
 	from pySmartDL import SmartDL
 
-	url = "https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip"
+	url = "https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip"
 	dest = "C:\\Downloads\\" # or '~/Downloads/' on linux
 
 	obj = SmartDL(url, dest)
@@ -26,7 +26,7 @@ Example 2: Downloading a file to a temporarily location, not showing progress ba
 
 	from pySmartDL import SmartDL
 	 
-	url = "https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip"
+	url = "https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip"
 	obj = SmartDL(url, progress_bar=False) # Because we didn't pass a destination path to the constructor, temporary path was chosen.
 	obj.start()
 	
@@ -39,7 +39,7 @@ Example 3: Mirrors are also supported
 
 	from pySmartDL import SmartDL
 	 
-	urls = ["http://totally_fake_website/7za.zip" ,"https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip"]
+	urls = ["http://totally_fake_website/7za.zip" ,"https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip"]
 	obj = SmartDL(urls, progress_bar=False)
 	obj.start()
 	
@@ -106,7 +106,7 @@ Example with passing `blocking=True` to `obj.start()`::
 
 	from pySmartDL import SmartDL, HashFailedException
 	 
-	urls = ["https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip",
+	urls = ["https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip",
 			"http://www.bevc.net/dl/7za920.zip",
 			"http://ftp.jaist.ac.jp/pub/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip",
 			"http://www.mirrorservice.org/sites/downloads.sourceforge.net/s/se/sevenzip/7-Zip/9.20/7za920.zip"]
@@ -123,7 +123,7 @@ Example with passing `blocking=False` to `obj.start()`::
 
 	from pySmartDL import SmartDL
 	 
-	urls = ["https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip",
+	urls = ["https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip",
 			"http://www.bevc.net/dl/7za920.zip",
 			"http://ftp.jaist.ac.jp/pub/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip",
 			"http://www.mirrorservice.org/sites/downloads.sourceforge.net/s/se/sevenzip/7-Zip/9.20/7za920.zip"]
