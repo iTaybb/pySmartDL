@@ -797,9 +797,9 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
         else:
             try:
                 meta = urlObj.info()
-                filesize = int(meta.getheaders("Content-Length")[0])
-                logger.info("Content-Length is %d." % filesize)
-            except IndexError:
+                filesize = int(urlObj.headers["Content-Length"])
+                logger.info("Content-Length is {}.".format(filesize))
+            except (IndexError, KeyError, TypeError):
                 logger.warning("Server did not send Content-Length.")
         
         filesize_dl = 0  # total downloaded size
