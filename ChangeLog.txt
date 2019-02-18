@@ -5,6 +5,12 @@ Below you find a list with the added features, changes and fixes for
 each version.
 
 ======================
+(Version 1.3.0 beta; ??/02/19)
+- NEW: Added support for Python 3.7.
+- NEW: Dropped support for Python 2 and 3.1, 3.2, 3.3.
+- IMPROVE: Better tests.
+- FIX: Bug fixes.
+
 (Version 1.2.5 beta; 04/01/17)
 - NEW: Added support for Python 3.6.
 - IMPROVE: Updated the user agents list.

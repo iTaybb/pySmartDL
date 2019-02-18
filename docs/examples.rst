@@ -10,7 +10,7 @@ Example 1: Downloading a file and running it
 	import os
 	from pySmartDL import SmartDL
 
-	url = "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"
+	url = "https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip"
 	dest = "C:\\Downloads\\" # or '~/Downloads/' on linux
 
 	obj = SmartDL(url, dest)
@@ -26,7 +26,7 @@ Example 2: Downloading a file to a temporarily location, not showing progress ba
 
 	from pySmartDL import SmartDL
 	 
-	url = "http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"
+	url = "https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip"
 	obj = SmartDL(url, progress_bar=False) # Because we didn't pass a destination path to the constructor, temporary path was chosen.
 	obj.start()
 	
@@ -39,7 +39,7 @@ Example 3: Mirrors are also supported
 
 	from pySmartDL import SmartDL
 	 
-	urls = ["http://totally_fake_website/7za.zip" ,"http://mirror.ufs.ac.za/7zip/9.20/7za920.zip"]
+	urls = ["http://totally_fake_website/7za.zip" ,"https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip"]
 	obj = SmartDL(urls, progress_bar=False)
 	obj.start()
 	
@@ -70,7 +70,7 @@ Example 5: Use the nonblocking flag and get information during the download proc
 	import time
 	from pySmartDL import SmartDL
 	 
-	url_100mb_file = ['http://ipv4.download.thinkbroadband.com/100MB.zip']
+	url_100mb_file = ['https://speed.hetzner.de/100MB.bin']
 	obj = SmartDL(url_100mb_file, progress_bar=False)
 	obj.start(blocking=False)
 
@@ -106,12 +106,12 @@ Example with passing `blocking=True` to `obj.start()`::
 
 	from pySmartDL import SmartDL, HashFailedException
 	 
-	urls = ["http://mirror.ufs.ac.za/7zip/9.20/7za920.zip",
+	urls = ["https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip",
 			"http://www.bevc.net/dl/7za920.zip",
 			"http://ftp.jaist.ac.jp/pub/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip",
 			"http://www.mirrorservice.org/sites/downloads.sourceforge.net/s/se/sevenzip/7-Zip/9.20/7za920.zip"]
 	
-	obj = SmartDL(urls, progress_bar=False) # use connect_default_logger=True if you'd like to get debugging info to the console
+	obj = SmartDL(urls, progress_bar=False)  # use connect_default_logger=True if you'd like to get debugging info to the console
 	obj.add_hash_verification('sha256' ,'2a3afe19c180f8373fa02ff00254d5394fec0349f5804e0ad2f6067854ff28ac')
 	try:
 		obj.start()
@@ -123,7 +123,7 @@ Example with passing `blocking=False` to `obj.start()`::
 
 	from pySmartDL import SmartDL
 	 
-	urls = ["http://mirror.ufs.ac.za/7zip/9.20/7za920.zip",
+	urls = ["https://github.com/iTaybb/pySmartDL/blob/master/test/7za920.zip",
 			"http://www.bevc.net/dl/7za920.zip",
 			"http://ftp.jaist.ac.jp/pub/sourceforge/s/project/se/sevenzip/7-Zip/9.20/7za920.zip",
 			"http://www.mirrorservice.org/sites/downloads.sourceforge.net/s/se/sevenzip/7-Zip/9.20/7za920.zip"]

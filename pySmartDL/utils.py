@@ -5,9 +5,7 @@ The Utils class contains many functions for project-wide use.
 
 import os
 import sys
-import urlparse
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
 import random
 import logging
 import re
@@ -15,7 +13,7 @@ from concurrent import futures  # if python2, a backport is needed
 from math import log
 import shutil
 
-def combine_files(parts, dest):
+def combine_files(parts, dest, chunkSize = 1024 * 1024 * 4):
 	'''
 	Combines files.
 
@@ -23,10 +21,10 @@ def combine_files(parts, dest):
 	:type parts: list of strings
 	:param dest: Destination file.
 	:type dest: string
+    :param chunkSize: Fetching chunk size.
+	:type chunkSize: int
 
 	'''
-	chunkSize = 1024 * 1024 * 4
-	
 	if len(parts) == 1:
 		shutil.move(parts[0], dest)
 	else:
@@ -58,12 +56,10 @@ def url_fix(s, charset='utf-8'):
                     
     (taken from `werkzeug.utils <http://werkzeug.pocoo.org/docs/utils/>`_)
     '''
-    if sys.version_info < (3, 0) and isinstance(s, unicode):
-        s = s.encode(charset, 'ignore')
-    scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
-    path = urllib.quote(path, '/%')
-    qs = urllib.quote_plus(qs, ':&=')
-    return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
+    scheme, netloc, path, qs, anchor = urllib.parse.urlsplit(s)
+    path = urllib.parse.quote(path, '/%')
+    qs = urllib.parse.quote_plus(qs, ':&=')
+    return urllib.parse.urlunsplit((scheme, netloc, path, qs, anchor))
     
 def progress_bar(progress, length=20):
     '''
@@ -103,8 +99,8 @@ def is_HTTPRange_supported(url, timeout=15):
         return False
     
     headers = {'Range': 'bytes=0-3'}
-    req = urllib2.Request(url, headers=headers)
-    urlObj = urllib2.urlopen(req, timeout=timeout)
+    req = urllib.request.Request(url, headers=headers)
+    urlObj = urllib.request.urlopen(req, timeout=timeout)
     filesize = int(urlObj.headers["Content-Length"])
     
     urlObj.close()
@@ -121,14 +117,10 @@ def get_filesize(url, timeout=15):
     :returns: Size in bytes.
     :rtype: int
     '''
-    # url = url_fix(url)
     try:
-        urlObj = urllib2.urlopen(url, timeout=timeout)
-    except (urllib2.HTTPError, urllib2.URLError) as e:
-        return 0
-    try:
+        urlObj = urllib.request.urlopen(url, timeout=timeout)
         file_size = int(urlObj.headers["Content-Length"])
-    except (IndexError, KeyError, TypeError):
+    except (IndexError, KeyError, TypeError, urllib.error.HTTPError, urllib.error.URLError):
         return 0
         
     return file_size
@@ -136,27 +128,32 @@ def get_filesize(url, timeout=15):
 def get_random_useragent():
     '''
     Returns a random popular user-agent.
-    Taken from `here <http://techblog.willshouse.com/2012/01/03/most-common-user-agents/>`_, last updated on 04/01/2017.
+    Taken from `here <http://techblog.willshouse.com/2012/01/03/most-common-user-agents/>`_, last updated on 2019/02/17.
     
     :returns: user-agent
     :rtype: string
     '''
     l = [
-	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-	'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0',
-	'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
-	'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
-	'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-	'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-	'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0',
-	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
-	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36',
-	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14',
-	'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0',
-	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36',
-	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/602.3.12 (KHTML, like Gecko) Version/10.0.2 Safari/602.3.12',
-	'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36',
-	'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:64.0) Gecko/20100101 Firefox/64.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.2 Safari/605.1.15",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.96 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
+        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.3 Safari/605.1.15",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:64.0) Gecko/20100101 Firefox/64.0",
+        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:65.0) Gecko/20100101 Firefox/65.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0"
 	]
     return random.choice(l)
 
@@ -172,26 +169,15 @@ def sizeof_human(num):
     
     :rtype: string
     '''
-    unit_list = zip(['B', 'kB', 'MB', 'GB', 'TB', 'PB'], [0, 0, 1, 2, 2, 2])
+    unit_list = list(zip(['B', 'kB', 'MB', 'GB', 'TB', 'PB'], [0, 0, 1, 2, 2, 2]))
     
     if num > 1:
         exponent = min(int(log(num, 1024)), len(unit_list) - 1)
         quotient = float(num) / 1024**exponent
         unit, num_decimals = unit_list[exponent]
         
-        if sys.version_info >= (2, 7): # python2.7 supports comma seperators
-            format_string = '{:,.%sf} {}' % (num_decimals)
-            return format_string.format(quotient, unit)
-        else: # with python2.6, we have to do some ugly hacks
-            if quotient != int(quotient): # real float
-                x, y = str(quotient).split('.')
-                x = re.sub("(\d)(?=(\d{3})+(?!\d))", r"\1,", "%d" % int(x))
-                y = y[:num_decimals]
-                quotient = "%s.%s" % (x, y) if y else x
-                return "%s %s" % (quotient, unit)
-            else:
-                quotient = re.sub("(\d)(?=(\d{3})+(?!\d))", r"\1,", "%d" % quotient)
-                return "%s %s" % (quotient, unit)
+        format_string = '{:,.%sf} {}' % (num_decimals)
+        return format_string.format(quotient, unit)
             
     if num == 0:
         return '0 bytes'
@@ -221,13 +207,15 @@ def time_human(duration, fmt_short=False):
     if fmt_short:
         NAMES = ['s'*2, 'm'*2, 'h'*2, 'd'*2, 'w'*2, 'y'*2]
     else:
-        NAMES = [('second', 'seconds'),
-             ('minute', 'minutes'),
-             ('hour', 'hours'),
-             ('day', 'days'),
-             ('week', 'weeks'),
-             ('month', 'months'),
-             ('year', 'years')]
+        NAMES = [
+            ('second', 'seconds'),
+            ('minute', 'minutes'),
+            ('hour', 'hours'),
+            ('day', 'days'),
+            ('week', 'weeks'),
+            ('month', 'months'),
+            ('year', 'years')
+        ]
     
     result = []
     

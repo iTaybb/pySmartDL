@@ -1,6 +1,6 @@
 import os
 import sys
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import copy
 import threading
 import time
@@ -9,17 +9,17 @@ import tempfile
 import base64
 import hashlib
 import logging
-from urlparse import urlparse
-from StringIO import StringIO
+from urllib.parse import urlparse
+from io import StringIO
 import multiprocessing.dummy as multiprocessing
 from ctypes import c_int
 
-import utils
+from . import utils
 
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
-__version_minor__ = 2
-__version_micro__ = 5
+__version_minor__ = 3
+__version_micro__ = 0
 __version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
 DEFAULT_LOGGER_CREATED = False
 
@@ -30,9 +30,9 @@ class HashFailedException(Exception):
         self.calculated_hash = calc_hash
         self.needed_hash = needed_hash
     def __str__(self):
-        return 'HashFailedException(%s, got %s, expected %s)' % (self.filename, self.calculated_hash, self.needed_hash)
+        return 'HashFailedException({}, got {}, expected {})'.format(self.filename, self.calculated_hash, self.needed_hash)
     def __repr__(self):
-        return "<HashFailedException %s, got %s, expected %s>" % (self.filename, self.calculated_hash, self.needed_hash)
+        return '<HashFailedException {}, got {}, expected {}>'.format(self.filename, self.calculated_hash, self.needed_hash)
         
 class CanceledException(Exception):
     "Raised when the job is canceled."
@@ -75,14 +75,12 @@ class SmartDL:
     def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, logger=None, connect_default_logger=False):
         global DEFAULT_LOGGER_CREATED
         
-        self.mirrors = [urls] if isinstance(urls, basestring) else urls
+        self.mirrors = [urls] if isinstance(urls, str) else urls
         if fix_urls:
             self.mirrors = [utils.url_fix(x) for x in self.mirrors]
         self.url = self.mirrors.pop(0)
         
-        fn = urllib2.unquote(os.path.basename(urlparse(self.url).path))
-        if sys.version_info < (3, 0):
-            fn = fn.decode('utf-8')  # required only on python 2
+        fn = urllib.parse.unquote(os.path.basename(urlparse(self.url).path))
         self.dest = dest or os.path.join(tempfile.gettempdir(), 'pySmartDL', fn)
         if self.dest[-1] == os.sep:
             if os.path.exists(self.dest[:-1]) and os.path.isfile(self.dest[:-1]):
@@ -198,7 +196,7 @@ class SmartDL:
         for filename in default_sums_filenames:
             try:
                 sums_url = "%s/%s" % (folder, filename)
-                obj = urllib2.urlopen(sums_url)
+                obj = urllib.request.urlopen(sums_url)
                 data = obj.read().split('\n')
                 obj.close()
                 
@@ -210,7 +208,7 @@ class SmartDL:
                         self.add_hash_verification(algo, hash)
                         return
                 
-            except urllib2.HTTPError:
+            except urllib.error.HTTPError:
                 continue
         
     def start(self, blocking=None):
@@ -245,18 +243,18 @@ class SmartDL:
                 return
         
         self.logger.info("Downloading '%s' to '%s'..." % (self.url, self.dest))
-        req = urllib2.Request(self.url, headers=self.headers)
+        req = urllib.request.Request(self.url, headers=self.headers)
         try:
-            urlObj = urllib2.urlopen(req, timeout=self.timeout)
-        except (urllib2.HTTPError, urllib2.URLError), e:
+            urlObj = urllib.request.urlopen(req, timeout=self.timeout)
+        except (urllib.error.HTTPError, urllib.error.URLError) as e:
             self.errors.append(e)
             if self.mirrors:
-                self.logger.info("%s. Trying next mirror..." % unicode(e))
+                self.logger.info("%s. Trying next mirror..." % str(e))
                 self.url = self.mirrors.pop(0)
                 self.start(blocking)
                 return
             else:
-                self.logger.warning(unicode(e))
+                self.logger.warning(str(e))
                 self.errors.append(e)
                 self._failed = True
                 self.status = "finished"
@@ -279,16 +277,17 @@ class SmartDL:
         self.status = "downloading"
         
         for i, arg in enumerate(args):
-            req = self.pool.submit(     download,
-                                        self.url,
-                                        self.dest+".%.3d" % i,
-                                        arg[0],
-                                        arg[1],
-                                        copy.deepcopy(self.headers),
-                                        self.timeout,
-                                        self.shared_var,
-                                        self.thread_shared_cmds
-                                        )
+            req = self.pool.submit(
+                download,
+                self.url,
+                self.dest+".%.3d" % i,
+                arg[0],
+                arg[1],
+                copy.deepcopy(self.headers),
+                self.timeout,
+                self.shared_var,
+                self.thread_shared_cmds
+            )
         
         self.post_threadpool_thread = threading.Thread(target=post_threadpool_actions, args=(self.pool, [[(self.dest+".%.3d" % i) for i in range(len(args))], self.dest], self.filesize, self))
         self.post_threadpool_thread.daemon = True
@@ -315,7 +314,7 @@ class SmartDL:
             s = 'The maximum retry attempts reached'
             if eStr:
                 s += " (%s)" % eStr
-            self.errors.append(urllib2.HTTPError(self.url, "0", s, {}, StringIO()))
+            self.errors.append(urllib.error.HTTPError(self.url, "0", s, {}, StringIO()))
             self._failed = True
             
     def try_next_mirror(self, e=None):
@@ -344,6 +343,7 @@ class SmartDL:
             s = utils.time_human(self.control_thread.get_eta())
             return s if s else "TBD"
         return self.control_thread.get_eta()
+
     def get_speed(self, human=False):
         '''
         Get current transfer speed in bytes per second.
@@ -353,8 +353,9 @@ class SmartDL:
         :rtype: int/string
         '''
         if human:
-            return "%s/s" % utils.sizeof_human(self.control_thread.get_speed())
+            return "{}/s".format(utils.sizeof_human(self.control_thread.get_speed()))
         return self.control_thread.get_speed()
+
     def get_progress(self):
         '''
         Returns the current progress of the download, as a float between `0` and `1`.
@@ -366,6 +367,7 @@ class SmartDL:
         if self.control_thread.get_dl_size() <= self.filesize:
             return 1.0*self.control_thread.get_dl_size()/self.filesize
         return 1.0
+
     def get_progress_bar(self, length=20):
         '''
         Returns the current progress of the download as a string containing a progress bar.
@@ -378,6 +380,7 @@ class SmartDL:
         :rtype: string
         '''
         return utils.progress_bar(self.get_progress(), length)
+
     def isFinished(self):
         '''
         Returns if the task is finished.
@@ -389,6 +392,7 @@ class SmartDL:
         if self.status == "finished":
             return True
         return not self.post_threadpool_thread.is_alive()
+
     def isSuccessful(self):
         '''
         Returns if the download is successfull. It may fail in the following scenarios:
@@ -413,7 +417,7 @@ class SmartDL:
             n += 1
             time.sleep(0.1)
             if n >= 15:
-                raise RuntimeError("The download task must be finished in order to see if it's successful. (current status is %s)" % self.status)
+                raise RuntimeError("The download task must be finished in order to see if it's successful. (current status is {})".format(self.status))
             
         return not self._failed
         
@@ -433,6 +437,7 @@ class SmartDL:
         :rtype: string
         '''
         return self.status
+
     def wait(self, raise_exceptions=False):
         '''
         Blocks until the download is finished.
@@ -450,6 +455,7 @@ class SmartDL:
         
         if self._failed and raise_exceptions:
             raise self.errors[-1]
+
     def stop(self):
         '''
         Stops the download.
@@ -457,6 +463,7 @@ class SmartDL:
         if self.status == "downloading":
             self.thread_shared_cmds['stop'] = ""
             self._killed = True
+
     def pause(self):
         '''
         Pauses the download.
@@ -464,6 +471,7 @@ class SmartDL:
         if self.status == "downloading":
             self.status = "paused"
             self.thread_shared_cmds['pause'] = ""
+
     def unpause(self):
         '''
         Continues the download.
@@ -473,16 +481,18 @@ class SmartDL:
             del self.thread_shared_cmds['pause']
     
     # def limit_speed(self, kbytes=-1):
-        # '''
-        # Limits the download transfer speed.
+    #     '''
+    #     Limits the download transfer speed.
         
-        # :param kbytes: Number of Kilobytes to download per second. Negative values will not limit the speed. Default is `-1`.
-        # :type kbytes: int
-        # '''
-        # if kbytes == 0:
-            # self.pause()
-        # if kbytes > 0 and self.status == "downloading":
-            # self.thread_shared_cmds['limit'] = 1.0*kbytes/self.threads_count
+    #     :param kbytes: Number of Kilobytes to download per second. Negative values will not limit the speed. Default is `-1`.
+    #     :type kbytes: int
+    #     '''
+    #     if kbytes == 0:
+    #         self.pause()
+    #     elif kbytes > 0 and self.status == "downloading":
+    #         self.thread_shared_cmds['limit'] = kbytes/self.threads_count
+    #     else:
+    #         self.unpause()
         
     def get_dest(self):
         '''
@@ -565,7 +575,7 @@ class SmartDL:
         :rtype: string
         
         .. WARNING::
-            The hashing algorithm must be supported on your system, as documented at `hashlib documentation page <http://docs.python.org/2/library/hashlib.html>`_.
+            The hashing algorithm must be supported on your system, as documented at `hashlib documentation page <http://docs.python.org/3/library/hashlib.html>`_.
         '''
         return hashlib.new(algorithm, self.get_data(binary=True)).hexdigest()
 
@@ -580,7 +590,7 @@ class ControlThread(threading.Thread):
         
         self.dl_speed = 0
         self.eta = 0
-        self.lastBytesSamples = [] # list with last 50 Bytes Samples.
+        self.lastBytesSamples = []  # list with last 50 Bytes Samples.
         self.last_calculated_totalBytes = 0
         self.calcETA_queue = []
         self.calcETA_i = 0
@@ -604,8 +614,7 @@ class ControlThread(threading.Thread):
                 else:
                     status = r"[*] %s / ??? MB @ %s/s   " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.dl_speed))
                 status = status + chr(8)*(len(status)+1)
-                print status,
-            
+                print(status, end='', flush=True)
             time.sleep(0.1)
             
         if self.obj._killed:
@@ -614,9 +623,9 @@ class ControlThread(threading.Thread):
             
         if self.progress_bar:
             if self.obj.filesize:
-                print r"[*] %s / %s @ %s/s %s [100%%, 0s left]    " % (utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.dl_speed), utils.progress_bar(1.0))
+                print(r"[*] %s / %s @ %s/s %s [100%%, 0s left]    " % (utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.dl_speed), utils.progress_bar(1.0)))
             else:
-                print r"[*] %s / %s @ %s/s    " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.dl_speed))
+                print(r"[*] %s / %s @ %s/s    " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.dl_speed)))
                 
         t2 = time.time()
         self.dl_time = float(t2-t1)
@@ -690,8 +699,8 @@ def post_threadpool_actions(pool, args, expected_filesize, SmartDL_obj):
         time.sleep(0.1)
         
     if pool.get_exceptions():
-        SmartDL_obj.logger.warning(unicode(pool.get_exceptions()[0]))
-        SmartDL_obj.retry(unicode(pool.get_exceptions()[0]))
+        SmartDL_obj.logger.warning(str(pool.get_exceptions()[0]))
+        SmartDL_obj.retry(str(pool.get_exceptions()[0]))
        
         
     if SmartDL_obj._killed:
@@ -754,10 +763,10 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
         headers['Range'] = 'bytes=%d-%d' % (startByte, endByte)
     
     logger.info("Downloading '%s' to '%s'..." % (url, dest))
-    req = urllib2.Request(url, headers=headers)
+    req = urllib.request.Request(url, headers=headers)
     try:
-        urlObj = urllib2.urlopen(req, timeout=timeout)
-    except urllib2.HTTPError, e:
+        urlObj = urllib.request.urlopen(req, timeout=timeout)
+    except urllib.error.HTTPError as e:
         if e.code == 416:
             '''
             HTTP 416 Error: Requested Range Not Satisfiable. Happens when we ask
@@ -768,7 +777,7 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
             '''
             
             if retries > 0:
-                logger.warning("Thread didn't got the file it was expecting. Retrying (%d times left)..." % (retries-1))
+                logger.warning("Thread didn't got the file it was expecting. Retrying ({} times left)...".format(retries-1))
                 time.sleep(5)
                 return download(url, dest, startByte, endByte, headers, timeout, shared_var, thread_shared_cmds, logger, retries-1)
             else:
@@ -811,8 +820,8 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
                 
             try:
                 buff = urlObj.read(block_sz)
-            except Exception, e:
-                logger.error(unicode(e))
+            except Exception as e:
+                logger.error(str(e))
                 if shared_var:
                     shared_var.value -= filesize_dl
                 raise
