@@ -225,7 +225,8 @@ class SmartDL:
         '''
         if not self.status == "ready":
             raise RuntimeError("cannot start (current status is %s)" % self.status)
-        
+        self.logger.info('Starting a new SmartDL operation.')
+
         if blocking is None:
             blocking = self._start_func_blocking
         else:
@@ -473,9 +474,15 @@ class SmartDL:
             self.status = "paused"
             self.thread_shared_cmds['pause'] = ""
 
+    def resume(self):
+        '''
+        Continues the download. same as unpause().
+        '''
+        self.unpause()
+
     def unpause(self):
         '''
-        Continues the download.
+        Continues the download. same as resume().
         '''
         if self.status == "paused" and 'pause' in self.thread_shared_cmds:
             self.status = "downloading"
@@ -699,46 +706,48 @@ class ControlThread(threading.Thread):
             return 0
         return self.calcETA_val
 
-def post_threadpool_actions(pool, args, expected_filesize, SmartDL_obj):
+def post_threadpool_actions(pool, args, expected_filesize, SmartDLObj):
     "Run function after thread pool is done. Run this in a thread."
     while not pool.done():
         time.sleep(0.1)
+
+    if SmartDLObj._killed:
+        return
         
-    if pool.get_exceptions():
-        SmartDL_obj.logger.warning(str(pool.get_exceptions()[0]))
-        SmartDL_obj.retry(str(pool.get_exceptions()[0]))
+    if pool.get_exception():
+        for exc in pool.get_exceptions():
+            SmartDLObj.logger.exception(exc)
+            
+        SmartDLObj.retry(str(pool.get_exception()))
        
-        
-    if SmartDL_obj._killed:
+    if SmartDLObj._failed:
+        SmartDLObj.logger.warning("Task had errors. Exiting...")
         return
         
-    if SmartDL_obj._failed:
-        SmartDL_obj.logger.warning("Task has errors. Exiting...")
-        return
-        
-    if expected_filesize: # if not zero, etc expected filesize is not known
+    if expected_filesize:  # if not zero, etc expected filesize is not known
         threads = len(args[0])
         total_filesize = sum([os.path.getsize(x) for x in args[0]])
         diff = math.fabs(expected_filesize - total_filesize)
         
         # if the difference is more than 4*thread numbers (because a thread may download 4KB more per thread because of NTFS's block size)
         if diff > 4*threads:
-            SmartDL_obj.logger.warning('Diff between downloaded files and expected filesizes is %dKB. Retrying...' % diff)
-            SmartDL_obj.retry('Diff between downloaded files and expected filesizes is %dKB.' % diff)
+            errMsg = 'Diff between downloaded files and expected filesizes is {}kB.'.format(diff)
+            SmartDLObj.logger.warning(errMsg)
+            SmartDLObj.retry(errMsg)
             return
     
-    SmartDL_obj.status = "combining"
+    SmartDLObj.status = "combining"
     utils.combine_files(*args)
     
-    if SmartDL_obj.verify_hash:
+    if SmartDLObj.verify_hash:
         dest_path = args[-1]            
-        hash = get_file_hash(SmartDL_obj.hash_algorithm, dest_path)
+        hash_ = get_file_hash(SmartDLObj.hash_algorithm, dest_path)
 	
-        if hash == SmartDL_obj.hash_code:
-            SmartDL_obj.logger.info('Hash verification succeeded.')
+        if hash_ == SmartDLObj.hash_code:
+            SmartDLObj.logger.info('Hash verification succeeded.')
         else:
-            SmartDL_obj.logger.info('Hash verification failed.')
-            SmartDL_obj.try_next_mirror(HashFailedException(os.path.basename(dest_path), hash, SmartDL_obj.hash_code))
+            SmartDLObj.logger.warning('Hash verification failed.')
+            SmartDLObj.try_next_mirror(HashFailedException(os.path.basename(dest_path), hash, SmartDLObj.hash_code))
     
 def _calc_chunk_size(filesize, threads, minChunkFile):
     if not filesize:
@@ -809,7 +818,7 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
         while True:
             if thread_shared_cmds:
                 if 'stop' in thread_shared_cmds:
-                    logger.error('stop command issued.')
+                    logger.error('stop command received. Stopping.')
                     raise CanceledException()
                 if 'pause' in thread_shared_cmds:
                     time.sleep(0.2)
@@ -847,11 +856,14 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
     urlObj.close()
 	
 def get_file_hash(algorithm, path):
+    "Calculated file hash"
     hashAlg = hashlib.new(algorithm)
+    block_sz = 1* 1024**2  # 1 MB
+
     with open(path, 'rb') as f:
-        readSize = 1024 * 1024 * 4
-        data = f.read(readSize)
-        while(data):
+        data = f.read(block_sz)
+        while data:
             hashAlg.update(data)
-            data = f.read(readSize)
+            data = f.read(block_sz)
+    
     return hashAlg.hexdigest()

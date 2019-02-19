@@ -281,8 +281,16 @@ class ManagedThreadPoolExecutor(futures.ThreadPoolExecutor):
         return all([x.done() for x in self._futures])
        
     def get_exceptions(self):
+        "Return all the exception raised"
         l = []
         for x in self._futures:
             if x.exception():
                 l.append(x.exception())
         return l
+
+    def get_exception(self):
+        "Returns only the first exception"
+        for x in self._futures:
+            if x.exception():
+                return x.exception()
+        return None
