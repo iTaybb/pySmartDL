@@ -113,7 +113,7 @@ class TestSmartDL(unittest.TestCase):
         time.sleep(10)
 
         expected_dl_size = 10 * 1024**2  # after 10 seconds, we should of downloaded max of 5MB
-        allowed_delta = 0.25     #  because we took only 10sec, the delta needs to be quite big, it we were to test 30sec the delta would probably be much smaller
+        allowed_delta = 0.25 #  because we took only 10sec, the delta needs to be quite big, it we were to test 30sec the delta would probably be much smaller
         diff = math.fabs(expected_dl_size - obj.get_dl_size()) / expected_dl_size
 
         obj.stop()

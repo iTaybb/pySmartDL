@@ -224,7 +224,7 @@ class SmartDL:
         :type blocking: bool
         '''
         if not self.status == "ready":
-            raise RuntimeError("cannot start (current status is %s)" % self.status)
+            raise RuntimeError("cannot start (current status is {})".format(self.status))
         self.logger.info('Starting a new SmartDL operation.')
 
         if blocking is None:
@@ -233,7 +233,7 @@ class SmartDL:
             self._start_func_blocking = blocking
         
         if self.mirrors:
-            self.logger.info('One URL and %d mirrors are loaded.' % len(self.mirrors))
+            self.logger.info('One URL and {} mirrors are loaded.'.format(len(self.mirrors)))
         else:
             self.logger.info('One URL is loaded.')
         
@@ -447,7 +447,7 @@ class SmartDL:
         :param raise_exceptions: If true, this function will raise exceptions. Default is *False*.
         :type raise_exceptions: bool
         '''
-        if self.status == "finished":
+        if self.status in ["ready", "finished"]:
             return
             
         while not self.isFinished():
