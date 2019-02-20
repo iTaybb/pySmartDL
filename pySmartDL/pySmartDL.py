@@ -165,7 +165,7 @@ class SmartDL:
             If downloaded file already exist on the destination, and hash matches, pySmartDL will not download it again.
             
         .. WARNING::
-            The hashing algorithm must be supported on your system, as documented at `hashlib documentation page <http://docs.python.org/2/library/hashlib.html>`_.
+            The hashing algorithm must be supported on your system, as documented at `hashlib documentation page <http://docs.python.org/3/library/hashlib.html>`_.
         
         :param algorithm: Hashing algorithm.
         :type algorithm: string

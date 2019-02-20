@@ -273,7 +273,7 @@ class ManagedThreadPoolExecutor(futures.ThreadPoolExecutor):
         self._futures = []
     
     def submit(self, fn, *args, **kwargs):
-        future = super(ManagedThreadPoolExecutor, self).submit(fn, *args, **kwargs)
+        future = super().submit(fn, *args, **kwargs)
         self._futures.append(future)
         return future
     
@@ -281,7 +281,10 @@ class ManagedThreadPoolExecutor(futures.ThreadPoolExecutor):
         return all([x.done() for x in self._futures])
        
     def get_exceptions(self):
-        "Return all the exception raised"
+        '''
+        Return all the exceptions raised.
+
+        :rtype: List of `Exception` instances'''
         l = []
         for x in self._futures:
             if x.exception():
@@ -289,7 +292,11 @@ class ManagedThreadPoolExecutor(futures.ThreadPoolExecutor):
         return l
 
     def get_exception(self):
-        "Returns only the first exception"
+        '''
+        Returns only the first exception. Returns None if no exception was raised.
+
+        :rtype: `Exception` instance
+        '''
         for x in self._futures:
             if x.exception():
                 return x.exception()
