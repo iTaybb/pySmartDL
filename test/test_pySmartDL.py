@@ -8,8 +8,11 @@ import string
 import json
 import math
 import unittest
+import warnings
+from pathlib import Path
 
-sys.path.append('..')
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import pySmartDL
 
 #
@@ -18,6 +21,7 @@ import pySmartDL
 
 class TestSmartDL(unittest.TestCase):
     def setUp(self):
+        warnings.filterwarnings("ignore", category=ResourceWarning, message="unclosed.*<ssl.SSLSocket.*>")
         self.dl_dir = os.path.join(os.getenv('tmp'), "".join([random.choice(string.ascii_letters+string.digits) for i in range(8)]), '')
         while os.path.exists(self.dl_dir):
             self.dl_dir = os.path.join(os.getenv('tmp'), "".join([random.choice(string.ascii_letters+string.digits) for i in range(8)]), '')
