@@ -27,7 +27,7 @@ jobs:
     - stage: Deploy
       if: tag =~ -live
       dist: trusty
-      python: 3.7
+      python: 3.6
       skip-cleanup: true
       install:
         - pip install -r build_requirements.txt
@@ -37,16 +37,18 @@ jobs:
         - touch _build/html/.nojekyll  # for github pages
         - cd ..  # return to root folder
       deploy:
-        provider: pages
-        local-dir: docs/_build/html
-        target-branch: gh-pages
-        skip-cleanup: true
-        github-token: $GITHUB_TOKEN
-      deploy:
-        provider: pypi
-        user: $PYPI_USERNAME
-        password: $PYPI_PASSWORD
-        skip_existing: false
-        distributions: "sdist bdist_wheel"
-        on:
-          all_branches: true  # actually based on a -live tag
+        - provider: pages
+          local-dir: docs/_build/html
+          target-branch: gh-pages
+          skip-cleanup: true
+          github-token: $GITHUB_TOKEN
+          on:
+            all_branches: true  # actually based on a -live tag
+        - provider: pypi
+          user: $PYPI_USERNAME
+          password: $PYPI_PASSWORD
+          skip_existing: true
+          skip-cleanup: true
+          distributions: "sdist bdist_wheel"
+          on:
+            all_branches: true  # actually based on a -live tag

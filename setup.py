@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import pySmartDL
 
 extra = {}
-release_posttag = ".b1"
+release_posttag = ""
 
 setup(
     name='pySmartDL',
