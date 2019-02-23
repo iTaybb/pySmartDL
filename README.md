@@ -1,8 +1,7 @@
-==========================================
 Python Smart Download Manager -- pySmartDL
 ==========================================
 
-``pySmartDL`` strives to be a full-pleged smart download manager for Python. Main features:
+``pySmartDL`` strives to be a full-pledged smart download manager for Python. Main features:
 
 * Built-in download acceleration (with the `multipart downloading technique <http://stackoverflow.com/questions/93642/how-do-download-accelerators-work>`_).
 * Mirrors support.
@@ -23,7 +22,7 @@ Project Links
 Installation
 ============
 
-**Using pip**
+**Using pip (recommended way)**
 
     Make sure python-pip is installed on you system. If you are using virtualenv, then pip is alredy installed into environments created by virtualenv. Run pip to install pySmartDL:
 
@@ -38,9 +37,8 @@ Installation
 Usage
 =====
 
-Download is as simple as creating an instance and starting it::
+Download is as simple as creating an instance and starting it:
 
-	import os
 	from pySmartDL import SmartDL
 
 	url = "https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip"
@@ -52,7 +50,6 @@ Download is as simple as creating an instance and starting it::
 
 	path = obj.get_dest()
 
-==============
 Requirements
 ==============
 
