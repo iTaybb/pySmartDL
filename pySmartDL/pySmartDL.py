@@ -20,8 +20,7 @@ __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 3
 __version_micro__ = 0
-__version__ = "%d.%d.%d" % (__version_mjaor__, __version_minor__, __version_micro__)
-DEFAULT_LOGGER_CREATED = False
+__version__ = "{}.{}.{}".format(__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
     "Raised when hash check fails."
@@ -73,13 +72,19 @@ class SmartDL:
     '''
     
     def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, logger=None, connect_default_logger=False):
-        global DEFAULT_LOGGER_CREATED
+        if logger:
+            self.logger = logger
+        elif connect_default_logger:
+            self.logger = utils.create_debugging_logger()
+        else:
+            self.logger = utils.DummyLogger()
         
         self.mirrors = [urls] if isinstance(urls, str) else urls
         if fix_urls:
             self.mirrors = [utils.url_fix(x) for x in self.mirrors]
         self.url = self.mirrors.pop(0)
-        
+        self.logger.info('Using url "{}"'.format(self.url))
+
         fn = urllib.parse.unquote(os.path.basename(urlparse(self.url).path))
         self.dest = dest or os.path.join(tempfile.gettempdir(), 'pySmartDL', fn)
         if self.dest[-1] == os.sep:
@@ -90,17 +95,6 @@ class SmartDL:
             self.dest = os.path.join(self.dest, fn)
         
         self.progress_bar = progress_bar
-        
-        if logger:
-            self.logger = logger
-        elif connect_default_logger:
-            if not DEFAULT_LOGGER_CREATED:
-                self.logger = utils.create_debugging_logger()
-                DEFAULT_LOGGER_CREATED = True
-            else:
-                self.logger = logging.getLogger('pySmartDL')
-        else:
-            self.logger = utils.DummyLogger()
         
         self.headers = {'User-Agent': utils.get_random_useragent()}
         self.threads_count = threads
@@ -122,24 +116,24 @@ class SmartDL:
         self.control_thread = None
         
         if not os.path.exists(os.path.dirname(self.dest)):
-            self.logger.info('Folder "%s" does not exist. Creating...' % os.path.dirname(self.dest))
+            self.logger.info('Folder "{}" does not exist. Creating...'.format(os.path.dirname(self.dest)))
             os.makedirs(os.path.dirname(self.dest))
         if not utils.is_HTTPRange_supported(self.url):
             self.logger.warning("Server does not support HTTPRange. threads_count is set to 1.")
             self.threads_count = 1
         if os.path.exists(self.dest):
-            self.logger.warning('Destination "%s" already exists. Existing file will be removed.' % self.dest)
+            self.logger.warning('Destination "{}" already exists. Existing file will be removed.'.format(self.dest))
         if not os.path.exists(os.path.dirname(self.dest)):
-            self.logger.warning('Directory "%s" does not exist. Creating it...' % os.path.dirname(self.dest))
+            self.logger.warning('Directory "{}" does not exist. Creating it...'.format(os.path.dirname(self.dest)))
             os.makedirs(os.path.dirname(self.dest))
         
-        self.logger.info("Creating a ThreadPool of %d thread(s).", self.threads_count)
+        self.logger.info("Creating a ThreadPool of {} thread(s).".format(self.threads_count))
         self.pool = utils.ManagedThreadPoolExecutor(self.threads_count)
         
     def __str__(self):
-        return 'SmartDL(r"%s", dest=r"%s")' % (self.url, self.dest)
+        return 'SmartDL(r"{}", dest=r"{}")'.format(self.url, self.dest)
     def __repr__(self):
-        return "<SmartDL %s>" % (self.url)
+        return "<SmartDL {}>".format(self.url)
         
     def add_basic_authentication(self, username, password):
         '''
@@ -252,6 +246,7 @@ class SmartDL:
             if self.mirrors:
                 self.logger.info("{} Trying next mirror...".format(str(e)))
                 self.url = self.mirrors.pop(0)
+                self.logger.info('Using url "{}"'.format(self.url))
                 self.start(blocking)
                 return
             else:
@@ -326,6 +321,7 @@ class SmartDL:
             self.status = "ready"
             self.shared_var.value = 0
             self.url = self.mirrors.pop(0)
+            self.logger.info('Using url "{}"'.format(self.url))
             self.start()
         else:
             self._failed = True
@@ -818,7 +814,7 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
         while True:
             if thread_shared_cmds:
                 if 'stop' in thread_shared_cmds:
-                    logger.error('stop command received. Stopping.')
+                    logger.info('stop command received. Stopping.')
                     raise CanceledException()
                 if 'pause' in thread_shared_cmds:
                     time.sleep(0.2)
@@ -826,7 +822,7 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
                 if 'limit' in thread_shared_cmds:
                     now = time.time()
                     time_passed = now - limitspeed_timestamp
-                    if time_passed > 0.2:  # we only observe the limit after 200ms
+                    if time_passed > 0.1:  # we only observe the limit after 100ms
                         # if we passed the limit, we should
                         if (filesize_dl-limitspeed_filesize)/time_passed >= thread_shared_cmds['limit']:
                             time_to_sleep = (filesize_dl-limitspeed_filesize) / thread_shared_cmds['limit']

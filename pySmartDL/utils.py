@@ -13,6 +13,8 @@ from concurrent import futures
 from math import log
 import shutil
 
+DEFAULT_LOGGER_CREATED = False
+
 def combine_files(parts, dest, chunkSize = 1024 * 1024 * 4):
 	'''
 	Combines files.
@@ -241,12 +243,18 @@ def create_debugging_logger():
     
     :rtype: `logging.Logger` instance
     '''
+    global DEFAULT_LOGGER_CREATED
+
     t_log = logging.getLogger('pySmartDL')
-    t_log.setLevel(logging.DEBUG)
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-    console.setFormatter(logging.Formatter('[%(levelname)s||%(thread)d] %(message)s'))
-    t_log.addHandler(console)
+
+    if not DEFAULT_LOGGER_CREATED:
+        t_log.setLevel(logging.DEBUG)
+        console = logging.StreamHandler()
+        console.setLevel(logging.DEBUG)
+        console.setFormatter(logging.Formatter('[%(levelname)s||%(thread)d] %(message)s'))
+        t_log.addHandler(console)
+        DEFAULT_LOGGER_CREATED = True
+    
     return t_log
     
 class DummyLogger(object):
