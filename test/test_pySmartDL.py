@@ -122,7 +122,7 @@ class TestSmartDL(unittest.TestCase):
         time.sleep(30)
 
         expected_dl_size = 30 * 1024**2
-        allowed_delta = 0.5 #  because we took only 30sec, the delta needs to be quite big, it we were to test 60sec the delta would probably be much smaller
+        allowed_delta = 0.6 #  because we took only 30sec, the delta needs to be quite big, it we were to test 60sec the delta would probably be much smaller
         diff = math.fabs(expected_dl_size - obj.get_dl_size()) / expected_dl_size
 
         obj.stop()
