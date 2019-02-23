@@ -1,0 +1,52 @@
+language: python
+
+TestingStage: &testingStage
+  stage: test
+  dist: xenial
+  install:
+    - pip install -r test_requirements.txt
+  script:
+    - python setup.py install
+    - py.test --cov-report term --cov=pySmartDL -v
+    - codecov
+
+after_failure:
+  - dmesg | tail -n 100 
+
+jobs:
+  include:
+    - <<: *testingStage
+      python: 3.4
+    - <<: *testingStage
+      python: 3.5
+    - <<: *testingStage
+      python: 3.6
+    - <<: *testingStage
+      python: 3.7
+
+    - stage: Deploy
+      if: tag =~ -live
+      dist: trusty
+      python: 3.7
+      skip-cleanup: true
+      install:
+        - pip install -r build_requirements.txt
+      script:
+        - cd docs
+        - make html
+        - touch _build/html/.nojekyll  # for github pages
+        - cd ..  # return to root folder
+      deploy:
+        provider: pages
+        local-dir: docs/_build/html
+        target-branch: gh-pages
+        skip-cleanup: true
+        github-token: $GITHUB_TOKEN
+      deploy:
+        provider: pypi
+        user: $PYPI_USERNAME
+        password: $PYPI_PASSWORD
+        skip_existing: false
+        distributions: "sdist bdist_wheel"
+        on:
+          all_branches: true  # actually based on a -live tag

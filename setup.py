@@ -1,12 +1,12 @@
-import os
-import sys
 from setuptools import setup, find_packages
+import pySmartDL
 
 extra = {}
+release_posttag = ".b1"
 
 setup(
     name='pySmartDL',
-    version='1.3.0',
+    version=pySmartDL.__version__ + release_posttag,
     url='http://pypi.python.org/pypi/pySmartDL/',
     author='Itay Brandes',
     author_email='itay.brandes+pysmartdl@gmail.com',
