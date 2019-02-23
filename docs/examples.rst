@@ -7,7 +7,6 @@ Example 1: Downloading a file and running it
 =============================================
 ::
 
-	import os
 	from pySmartDL import SmartDL
 
 	url = "https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip"
