@@ -623,7 +623,7 @@ class ControlThread(threading.Thread):
                 else:
                     status = r"[*] %s / ??? MB @ %s/s   " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.dl_speed))
                 status = status + chr(8)*(len(status)+1)
-                print(status, end='', flush=True)
+                print(status, end=' ', flush=True)
             time.sleep(0.1)
             
         if self.obj._killed:
