@@ -219,3 +219,5 @@ coverage.xml
 docs/_build
 docs/Makefile
 *.bat
+*.zip
+*.rar

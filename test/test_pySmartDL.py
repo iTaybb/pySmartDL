@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import sys
 import random
@@ -55,7 +53,7 @@ class TestSmartDL(unittest.TestCase):
         
     def test_hash(self):
         obj = pySmartDL.SmartDL(self.res_7za920_mirrors, progress_bar=False, connect_default_logger=self.log)
-        obj.add_hash_verification('sha256' , self.res_7za920_hash) # good hash
+        obj.add_hash_verification('sha256' , self.res_7za920_hash)  # good hash
         obj.start(blocking=False)  # no exceptions
         obj.wait()
         

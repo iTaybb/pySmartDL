@@ -9,7 +9,7 @@ setup(
     version=pySmartDL.__version__ + release_posttag,
     url='http://pypi.python.org/pypi/pySmartDL/',
     author='Itay Brandes',
-    author_email='itay.brandes+pysmartdl@gmail.com',
+    author_email='brandes.itay+pysmartdl@gmail.com',
     license='Public Domain',
     packages=find_packages(),
     description='A Smart Download Manager for Python',

@@ -9,17 +9,18 @@ import tempfile
 import base64
 import hashlib
 import logging
-from urllib.parse import urlparse
 from io import StringIO
 import multiprocessing.dummy as multiprocessing
 from ctypes import c_int
 
 from . import utils
+from .control_thread import ControlThread
+from .download import download
 
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 3
-__version_micro__ = 1
+__version_micro__ = 2
 __version__ = "{}.{}.{}".format(__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
@@ -85,7 +86,7 @@ class SmartDL:
         self.url = self.mirrors.pop(0)
         self.logger.info('Using url "{}"'.format(self.url))
 
-        fn = urllib.parse.unquote(os.path.basename(urlparse(self.url).path))
+        fn = urllib.parse.unquote(os.path.basename(urllib.parse.urlparse(self.url).path))
         self.dest = dest or os.path.join(tempfile.gettempdir(), 'pySmartDL', fn)
         if self.dest[-1] == os.sep:
             if os.path.exists(self.dest[:-1]) and os.path.isfile(self.dest[:-1]):
@@ -132,6 +133,7 @@ class SmartDL:
         
     def __str__(self):
         return 'SmartDL(r"{}", dest=r"{}")'.format(self.url, self.dest)
+
     def __repr__(self):
         return "<SmartDL {}>".format(self.url)
         
@@ -232,7 +234,7 @@ class SmartDL:
             self.logger.info('One URL is loaded.')
         
         if self.verify_hash and os.path.exists(self.dest):
-            if get_file_hash(self.hash_algorithm, self.dest) == self.hash_code:
+            if _get_file_hash(self.hash_algorithm, self.dest) == self.hash_code:
                 self.logger.info("Destination '%s' already exists, and the hash matches. No need to download." % self.dest)
                 self.status = 'finished'
                 return
@@ -587,121 +589,6 @@ class SmartDL:
         '''
         return hashlib.new(algorithm, self.get_data(binary=True)).hexdigest()
 
-class ControlThread(threading.Thread):
-    "A class that shows information about a running SmartDL object."
-    def __init__(self, obj):
-        threading.Thread.__init__(self)
-        self.obj = obj
-        self.progress_bar = obj.progress_bar
-        self.logger = obj.logger
-        self.shared_var = obj.shared_var
-        
-        self.dl_speed = 0
-        self.eta = 0
-        self.lastBytesSamples = []  # list with last 50 Bytes Samples.
-        self.last_calculated_totalBytes = 0
-        self.calcETA_queue = []
-        self.calcETA_i = 0
-        self.calcETA_val = 0
-        self.dl_time = -1.0
-        
-        self.daemon = True
-        self.start()
-        
-    def run(self):
-        t1 = time.time()
-        self.logger.info("Control thread has been started.")
-        
-        while not self.obj.pool.done():
-            self.dl_speed = self.calcDownloadSpeed(self.shared_var.value)
-            if self.dl_speed > 0:
-                self.eta = self.calcETA((self.obj.filesize-self.shared_var.value)/self.dl_speed)
-                
-            if self.progress_bar:
-                if self.obj.filesize:
-                    status = r"[*] %s / %s @ %s/s %s [%3.1f%%, %s left]   " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.dl_speed), utils.progress_bar(1.0*self.shared_var.value/self.obj.filesize), self.shared_var.value * 100.0 / self.obj.filesize, utils.time_human(self.eta, fmt_short=True))
-                else:
-                    status = r"[*] %s / ??? MB @ %s/s   " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.dl_speed))
-                status = status + chr(8)*(len(status)+1)
-                print(status, end=' ', flush=True)
-            time.sleep(0.1)
-            
-        if self.obj._killed:
-            self.logger.info("File download process has been stopped.")
-            return
-            
-        if self.progress_bar:
-            if self.obj.filesize:
-                print(r"[*] %s / %s @ %s/s %s [100%%, 0s left]    " % (utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.obj.filesize), utils.sizeof_human(self.dl_speed), utils.progress_bar(1.0)))
-            else:
-                print(r"[*] %s / %s @ %s/s    " % (utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.shared_var.value), utils.sizeof_human(self.dl_speed)))
-                
-        t2 = time.time()
-        self.dl_time = float(t2-t1)
-        
-        while self.obj.post_threadpool_thread.is_alive():
-            time.sleep(0.1)
-            
-        self.obj.pool.shutdown()
-        self.obj.status = "finished"
-        if not self.obj.errors:
-            self.logger.info("File downloaded within %.2f seconds." % self.dl_time)
-            
-    def get_eta(self):
-        if self.eta <= 0 or self.obj.status == 'paused':
-            return 0
-        return self.eta
-    def get_speed(self):
-        if self.obj.status == 'paused':
-            return 0
-        return self.dl_speed
-    def get_dl_size(self):
-        if self.shared_var.value > self.obj.filesize:
-            return self.obj.filesize
-        return self.shared_var.value
-    def get_final_filesize(self):
-        return self.obj.filesize
-    def get_progress(self):
-        if not self.obj.filesize:
-            return 0
-        return 1.0*self.shared_var.value/self.obj.filesize
-    def get_dl_time(self):
-        return self.dl_time
-        
-    def calcDownloadSpeed(self, totalBytes, sampleCount=30, sampleDuration=0.1):
-        '''
-        Function calculates the download rate.
-        @param totalBytes: The total amount of bytes.
-        @param sampleCount: How much samples should the function take into consideration.
-        @param sampleDuration: Duration of a sample in seconds.
-        '''
-        l = self.lastBytesSamples
-        newBytes = totalBytes - self.last_calculated_totalBytes
-        self.last_calculated_totalBytes = totalBytes
-        if newBytes >= 0: # newBytes may be negetive, will happen
-                          # if a thread has crushed and the totalBytes counter got decreased.
-            if len(l) == sampleCount: # calc download for last 3 seconds (30 * 100ms per signal emit)
-                l.pop(0)
-                
-            l.append(newBytes)
-            
-        dlRate = sum(l)/len(l)/sampleDuration
-        return dlRate
-        
-    def calcETA(self, eta):
-        self.calcETA_i += 1
-        l = self.calcETA_queue
-        l.append(eta)
-        
-        if self.calcETA_i % 10 == 0:
-            self.calcETA_val = sum(l)/len(l)
-        if len(l) == 30:
-            l.pop(0)
-
-        if self.calcETA_i < 50:
-            return 0
-        return self.calcETA_val
-
 def post_threadpool_actions(pool, args, expected_filesize, SmartDLObj):
     "Run function after thread pool is done. Run this in a thread."
     while not pool.done():
@@ -737,14 +624,26 @@ def post_threadpool_actions(pool, args, expected_filesize, SmartDLObj):
     
     if SmartDLObj.verify_hash:
         dest_path = args[-1]            
-        hash_ = get_file_hash(SmartDLObj.hash_algorithm, dest_path)
+        hash_ = _get_file_hash(SmartDLObj.hash_algorithm, dest_path)
 	
         if hash_ == SmartDLObj.hash_code:
             SmartDLObj.logger.info('Hash verification succeeded.')
         else:
             SmartDLObj.logger.warning('Hash verification failed.')
             SmartDLObj.try_next_mirror(HashFailedException(os.path.basename(dest_path), hash, SmartDLObj.hash_code))
+	
+def _get_file_hash(algorithm, path):
+    hashAlg = hashlib.new(algorithm)
+    block_sz = 1* 1024**2  # 1 MB
+
+    with open(path, 'rb') as f:
+        data = f.read(block_sz)
+        while data:
+            hashAlg.update(data)
+            data = f.read(block_sz)
     
+    return hashAlg.hexdigest()
+
 def _calc_chunk_size(filesize, threads, minChunkFile):
     if not filesize:
         return [(0, 0)]
@@ -764,102 +663,3 @@ def _calc_chunk_size(filesize, threads, minChunkFile):
         pos += chunk+1
         
     return args
-
-def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shared_var=None, thread_shared_cmds=None, logger=None, retries=3):
-    "The basic download function that runs at each thread."
-    logger = logger or utils.DummyLogger()
-    if not headers:
-        headers = {}
-    if endByte:
-        headers['Range'] = 'bytes=%d-%d' % (startByte, endByte)
-    
-    logger.info("Downloading '%s' to '%s'..." % (url, dest))
-    req = urllib.request.Request(url, headers=headers)
-    try:
-        urlObj = urllib.request.urlopen(req, timeout=timeout)
-    except urllib.error.HTTPError as e:
-        if e.code == 416:
-            '''
-            HTTP 416 Error: Requested Range Not Satisfiable. Happens when we ask
-            for a range that is not available on the server. It will happen when
-            the server will try to send us a .html page that means something like
-            "you opened too many connections to our server". If this happens, we
-            will wait for the other threads to finish their connections and try again.
-            '''
-            
-            if retries > 0:
-                logger.warning("Thread didn't got the file it was expecting. Retrying ({} times left)...".format(retries-1))
-                time.sleep(5)
-                return download(url, dest, startByte, endByte, headers, timeout, shared_var, thread_shared_cmds, logger, retries-1)
-            else:
-                raise
-        else:
-            raise
-    
-    with open(dest, 'wb') as f:
-        if endByte:
-            filesize = endByte-startByte
-        else:
-            try:
-                meta = urlObj.info()
-                filesize = int(urlObj.headers["Content-Length"])
-                logger.info("Content-Length is {}.".format(filesize))
-            except (IndexError, KeyError, TypeError):
-                logger.warning("Server did not send Content-Length.")
-        
-        filesize_dl = 0  # total downloaded size
-        limitspeed_timestamp = time.time()
-        limitspeed_filesize = 0
-        block_sz = 8192
-        while True:
-            if thread_shared_cmds:
-                if 'stop' in thread_shared_cmds:
-                    logger.info('stop command received. Stopping.')
-                    raise CanceledException()
-                if 'pause' in thread_shared_cmds:
-                    time.sleep(0.2)
-                    continue
-                if 'limit' in thread_shared_cmds:
-                    now = time.time()
-                    time_passed = now - limitspeed_timestamp
-                    if time_passed > 0.1:  # we only observe the limit after 100ms
-                        # if we passed the limit, we should
-                        if (filesize_dl-limitspeed_filesize)/time_passed >= thread_shared_cmds['limit']:
-                            time_to_sleep = (filesize_dl-limitspeed_filesize) / thread_shared_cmds['limit']
-                            logger.debug('Thread has downloaded {} in {}. Limit is {}/s. Slowing down...'.format(utils.sizeof_human(filesize_dl-limitspeed_filesize), utils.time_human(time_passed, fmt_short=True, show_ms=True), utils.sizeof_human(thread_shared_cmds['limit'])))
-                            time.sleep(time_to_sleep)
-                            continue
-                        else:
-                            limitspeed_timestamp = now
-                            limitspeed_filesize = filesize_dl
-                
-            try:
-                buff = urlObj.read(block_sz)
-            except Exception as e:
-                logger.error(str(e))
-                if shared_var:
-                    shared_var.value -= filesize_dl
-                raise
-                
-            if not buff:
-                break
-
-            filesize_dl += len(buff)
-            if shared_var:
-                shared_var.value += len(buff)
-            f.write(buff)
-            
-    urlObj.close()
-	
-def get_file_hash(algorithm, path):
-    "Calculated file hash"
-    hashAlg = hashlib.new(algorithm)
-    block_sz = 1* 1024**2  # 1 MB
-
-    with open(path, 'rb') as f:
-        data = f.read(block_sz)
-        while data:
-            hashAlg.update(data)
-            data = f.read(block_sz)
-    
-    return hashAlg.hexdigest()
