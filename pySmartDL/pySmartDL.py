@@ -8,6 +8,7 @@ import math
 import tempfile
 import base64
 import hashlib
+import socket
 import logging
 from io import StringIO
 import multiprocessing.dummy as multiprocessing
@@ -245,7 +246,7 @@ class SmartDL:
         req = urllib.request.Request(self.url, headers=self.headers)
         try:
             urlObj = urllib.request.urlopen(req, timeout=self.timeout)
-        except (urllib.error.HTTPError, urllib.error.URLError) as e:
+        except (urllib.error.HTTPError, urllib.error.URLError, socket.timeout) as e:
             self.errors.append(e)
             if self.mirrors:
                 self.logger.info("{} Trying next mirror...".format(str(e)))
@@ -268,11 +269,11 @@ class SmartDL:
             self.filesize = 0
             
         args = _calc_chunk_size(self.filesize, self.threads_count, self.minChunkFile)
-        bytes_per_thread = args[0][1]-args[0][0]
+        bytes_per_thread = args[0][1] - args[0][0] + 1
         if len(args)>1:
             self.logger.info("Launching {} threads (downloads {}/thread).".format(len(args),  utils.sizeof_human(bytes_per_thread)))
         else:
-            self.logger.info("Launching 1 thread.")
+            self.logger.info("Launching 1 thread (downloads {}).".format(utils.sizeof_human(bytes_per_thread)))
         
         self.status = "downloading"
         
@@ -290,7 +291,15 @@ class SmartDL:
                 self.logger
             )
         
-        self.post_threadpool_thread = threading.Thread(target=post_threadpool_actions, args=(self.pool, [[(self.dest+".%.3d" % i) for i in range(len(args))], self.dest], self.filesize, self))
+        self.post_threadpool_thread = threading.Thread(
+            target=post_threadpool_actions,
+            args=(
+                self.pool,
+                [[(self.dest+".%.3d" % i) for i in range(len(args))], self.dest],
+                self.filesize,
+                self
+            )
+        )
         self.post_threadpool_thread.daemon = True
         self.post_threadpool_thread.start()
         
@@ -609,14 +618,14 @@ def post_threadpool_actions(pool, args, expected_filesize, SmartDLObj):
         SmartDLObj.logger.warning("Task had errors. Exiting...")
         return
         
-    if expected_filesize:  # if not zero, etc expected filesize is not known
+    if expected_filesize:  # if not zero, expected filesize is known
         threads = len(args[0])
         total_filesize = sum([os.path.getsize(x) for x in args[0]])
         diff = math.fabs(expected_filesize - total_filesize)
         
-        # if the difference is more than 4*thread numbers (because a thread may download 4KB more per thread because of NTFS's block size)
-        if diff > 4*threads:
-            errMsg = 'Diff between downloaded files and expected filesizes is {}kB.'.format(diff)
+        # if the difference is more than 4*thread numbers (because a thread may download 4KB extra per thread because of NTFS's block size)
+        if diff > 4*1024*threads:
+            errMsg = 'Diff between downloaded files and expected filesizes is {}B (filesize: {}, expected_filesize: {}, {} threads).'.format(total_filesize, expected_filesize, diff, threads)
             SmartDLObj.logger.warning(errMsg)
             SmartDLObj.retry(errMsg)
             return
