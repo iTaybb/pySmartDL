@@ -9,6 +9,7 @@ import unittest
 import warnings
 import tempfile
 from pathlib import Path
+import socket
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -31,13 +32,13 @@ class TestSmartDL(unittest.TestCase):
         self.res_7za920_hash = '2a3afe19c180f8373fa02ff00254d5394fec0349f5804e0ad2f6067854ff28ac'
         self.res_testfile_1gb = 'https://speed.hetzner.de/1GB.bin'
         self.res_testfile_100mb = 'https://speed.hetzner.de/100MB.bin'
-        self.log = "-vvv" in sys.argv
+        self.enable_logging = "-vvv" in sys.argv
 
     def test_dependencies(self):
         self.assertTrue(sys.version_info >= (3, 4))
     
     def test_download(self):
-        obj = pySmartDL.SmartDL(self.res_7za920_mirrors, dest=self.dl_dir, progress_bar=False, connect_default_logger=self.log)
+        obj = pySmartDL.SmartDL(self.res_7za920_mirrors, dest=self.dl_dir, progress_bar=False, connect_default_logger=self.enable_logging)
         obj.start()
 
         data = obj.get_data(binary=True, bytes=2)
@@ -46,20 +47,20 @@ class TestSmartDL(unittest.TestCase):
     
     def test_mirrors(self):
         urls = ["http://totally_fake_website/7za.zip", "https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip"]
-        obj = pySmartDL.SmartDL(urls, dest=self.dl_dir, progress_bar=False, connect_default_logger=self.log)
+        obj = pySmartDL.SmartDL(urls, dest=self.dl_dir, progress_bar=False, connect_default_logger=self.enable_logging)
         obj.start()
         
         self.assertTrue(obj.isSuccessful())
         
     def test_hash(self):
-        obj = pySmartDL.SmartDL(self.res_7za920_mirrors, progress_bar=False, connect_default_logger=self.log)
+        obj = pySmartDL.SmartDL(self.res_7za920_mirrors, progress_bar=False, connect_default_logger=self.enable_logging)
         obj.add_hash_verification('sha256' , self.res_7za920_hash)  # good hash
         obj.start(blocking=False)  # no exceptions
         obj.wait()
         
         self.assertTrue(obj.isSuccessful())
         
-        obj = pySmartDL.SmartDL(self.res_7za920_mirrors, progress_bar=False, connect_default_logger=self.log)
+        obj = pySmartDL.SmartDL(self.res_7za920_mirrors, progress_bar=False, connect_default_logger=self.enable_logging)
         obj.add_hash_verification('sha256' ,'a'*64)  # bad hash
         obj.start(blocking=False)  # no exceptions
         obj.wait()
@@ -68,7 +69,7 @@ class TestSmartDL(unittest.TestCase):
         self.assertTrue(any([isinstance(e, pySmartDL.HashFailedException) for e in obj.get_errors()]))
         
     def test_pause_unpause(self, testfile=None):
-        obj = pySmartDL.SmartDL(testfile if testfile else self.res_7za920_mirrors, dest=self.dl_dir, progress_bar=False, connect_default_logger=self.log)
+        obj = pySmartDL.SmartDL(testfile if testfile else self.res_7za920_mirrors, dest=self.dl_dir, progress_bar=False, connect_default_logger=self.enable_logging)
         obj.start(blocking=False)
         
         while not obj.get_dl_size():
@@ -99,7 +100,7 @@ class TestSmartDL(unittest.TestCase):
         self.assertTrue(obj.isSuccessful())
 
     def test_stop(self):
-        obj = pySmartDL.SmartDL(self.res_testfile_100mb, dest=self.dl_dir, progress_bar=False, connect_default_logger=self.log)
+        obj = pySmartDL.SmartDL(self.res_testfile_100mb, dest=self.dl_dir, progress_bar=False, connect_default_logger=self.enable_logging)
         obj.start(blocking=False)
 
         while not obj.get_dl_size():
@@ -110,7 +111,7 @@ class TestSmartDL(unittest.TestCase):
         self.assertFalse(obj.isSuccessful())
 
     def test_speed_limiting(self):
-        obj = pySmartDL.SmartDL(self.res_testfile_1gb, dest=self.dl_dir, progress_bar=False, connect_default_logger=self.log)
+        obj = pySmartDL.SmartDL(self.res_testfile_1gb, dest=self.dl_dir, progress_bar=False, connect_default_logger=self.enable_logging)
         obj.limit_speed(1024**2)  # 1MB per sec
         obj.start(blocking=False)
 
@@ -130,7 +131,7 @@ class TestSmartDL(unittest.TestCase):
     
     def test_basic_auth(self):
         basic_auth_test_url = "https://httpbin.org/basic-auth/user/passwd"
-        obj = pySmartDL.SmartDL(basic_auth_test_url, progress_bar=False, connect_default_logger=self.log)
+        obj = pySmartDL.SmartDL(basic_auth_test_url, progress_bar=False, connect_default_logger=self.enable_logging)
         obj.add_basic_authentication('user', 'passwd')
         obj.start()
         data = obj.get_data()
@@ -138,8 +139,16 @@ class TestSmartDL(unittest.TestCase):
         
     def test_unicode(self):
         url = "https://he.wikipedia.org/wiki/ג'חנון"
-        obj = pySmartDL.SmartDL(url, progress_bar=False, connect_default_logger=self.log)
+        obj = pySmartDL.SmartDL(url, progress_bar=False, connect_default_logger=self.enable_logging)
         obj.start()
+
+    def test_timeout(self):
+        self.assertRaises(socket.timeout, pySmartDL.SmartDL, "https://httpbin.org/delay/10", progress_bar=False, timeout=3, connect_default_logger=self.enable_logging)
+
+        obj = pySmartDL.SmartDL("https://httpbin.org/delay/3", progress_bar=False, timeout=15, connect_default_logger=self.enable_logging)
+        obj.start(blocking=False)
+        obj.wait()
+        self.assertTrue(obj.isSuccessful())
         
 def test_suite():
     suite = unittest.makeSuite(TestSmartDL)

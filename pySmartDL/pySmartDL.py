@@ -57,6 +57,8 @@ class SmartDL:
 	:type fix_urls: bool
 	:param threads: Number of threads to use.
 	:type threads: int
+    :param timeout: Timeout for network operations, in seconds. Default is 5.
+	:type timeout: int
     :param logger: An optional logger.
     :type logger: `logging.Logger` instance
     :param connect_default_logger: If true, connects a default logger to the class.
@@ -72,7 +74,7 @@ class SmartDL:
             * If no path is provided, `%TEMP%/pySmartDL/` will be used.
     '''
     
-    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, logger=None, connect_default_logger=False):
+    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, timeout=5, logger=None, connect_default_logger=False):
         if logger:
             self.logger = logger
         elif connect_default_logger:
@@ -99,7 +101,7 @@ class SmartDL:
         
         self.headers = {'User-Agent': utils.get_random_useragent()}
         self.threads_count = threads
-        self.timeout = 4
+        self.timeout = timeout
         self.current_attemp = 1 
         self.attemps_limit = 4
         self.minChunkFile = 1024**2*2 # 2MB
@@ -119,7 +121,7 @@ class SmartDL:
         if not os.path.exists(os.path.dirname(self.dest)):
             self.logger.info('Folder "{}" does not exist. Creating...'.format(os.path.dirname(self.dest)))
             os.makedirs(os.path.dirname(self.dest))
-        if not utils.is_HTTPRange_supported(self.url):
+        if not utils.is_HTTPRange_supported(self.url, timeout=self.timeout):
             self.logger.warning("Server does not support HTTPRange. threads_count is set to 1.")
             self.threads_count = 1
         if os.path.exists(self.dest):
