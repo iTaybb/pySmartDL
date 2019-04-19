@@ -283,6 +283,7 @@ class SmartDL:
                 arg[1],
                 copy.deepcopy(self.headers),
                 self.timeout,
+                True,  # attempt_resume
                 self.shared_var,
                 self.thread_shared_cmds,
                 self.logger

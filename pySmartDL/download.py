@@ -4,13 +4,33 @@ import time
 
 from . import utils
 
-def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shared_var=None, thread_shared_cmds=None, logger=None, retries=3):
+def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, attempt_resume=True, shared_var=None, thread_shared_cmds=None, logger=None, retries=3):
     "The basic download function that runs at each thread."
     logger = logger or utils.DummyLogger()
     if not headers:
         headers = {}
     if endByte:
+        if attempt_resume and os.path.exists(dest):
+            partial_size = os.path.getsize(dest)
+            logger.info('Found partial chunks of file {} (found {} bytes).'.format(dest, partial_size))
+            startByte += partial_size
+            if shared_var:
+                shared_var.value += partial_size
+
+            if startByte-1 == endByte:
+                logger.info('This chunk is 100% downloaded ({}).'.format(startByte))
+                return
+            elif startByte > endByte:
+                logger.warning('startByte ({}) > endByte ({}). Chunks are corrupted. Overriding old chunks.'.format(startByte, endByte))
+                attempt_resume = False
+                if shared_var:
+                    shared_var.value -= partial_size
+
+        logger.debug("Downloading bytes=%d-%d" % (startByte, endByte))
         headers['Range'] = 'bytes=%d-%d' % (startByte, endByte)
+    else:
+        logger.info('without endByte, attempt_resume cannot be supported')
+        attempt_resume = False
     
     logger.info("Downloading '{}' to '{}'...".format(url, dest))
     req = urllib.request.Request(url, headers=headers)
@@ -29,13 +49,17 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
             if retries > 0:
                 logger.warning("Thread didn't got the file it was expecting. Retrying ({} times left)...".format(retries-1))
                 time.sleep(5)
-                return download(url, dest, startByte, endByte, headers, timeout, shared_var, thread_shared_cmds, logger, retries-1)
+                return download(url, dest, startByte, endByte, headers, timeout, attempt_resume, shared_var, thread_shared_cmds, logger, retries-1)
             else:
                 raise
         else:
             raise
-    
-    with open(dest, 'wb') as f:
+
+    if not attempt_resume and os.path.exists(dest):
+        logger.info('Deleting old {}...'.format(dest))
+        os.unlink(dest)
+
+    with open(dest, 'ab') as f:
         if endByte:
             filesize = endByte-startByte
         else:
