@@ -25,7 +25,7 @@ jobs:
       python: 3.7
 
     - stage: Deploy
-      if: tag =~ -live
+      if: tag =~ /^v
       dist: trusty
       python: 3.6
       skip-cleanup: true
@@ -43,7 +43,7 @@ jobs:
           skip-cleanup: true
           github-token: $GITHUB_TOKEN
           on:
-            all_branches: true  # actually based on a -live tag
+            all_branches: true  # actually based on the tag
         - provider: pypi
           user: $PYPI_USERNAME
           password: $PYPI_PASSWORD

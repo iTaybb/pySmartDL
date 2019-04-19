@@ -5,6 +5,11 @@ Below you find a list with the added features, changes and fixes for
 each version.
 
 ======================
+(Version 1.3.2 beta; ??/04/19)
+- IMPROVE: Issue #29 - added timeout parameter to the constructor of SmartDL
+- IMPROVE: Better tests and logging.
+- FIX: Bug fixes.
+
 (Version 1.3.1 beta; 23/02/19)
 - NEW: Speed limiting.
 - NEW: Added support for Python 3.7.
