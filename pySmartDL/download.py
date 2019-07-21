@@ -4,16 +4,13 @@ import time
 
 from . import utils
 
-def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shared_var=None, thread_shared_cmds=None, logger=None, retries=3):
+def download(url, dest, requestArgs, startByte=0, endByte=None, timeout=4, shared_var=None, thread_shared_cmds=None, logger=None, retries=3):
     "The basic download function that runs at each thread."
     logger = logger or utils.DummyLogger()
-    if not headers:
-        headers = {}
+    req = urllib.request.Request(url, **requestArgs)
     if endByte:
-        headers['Range'] = 'bytes=%d-%d' % (startByte, endByte)
-    
+        req.add_header('range', 'bytes=%d-%d' % (startByte, endByte))
     logger.info("Downloading '{}' to '{}'...".format(url, dest))
-    req = urllib.request.Request(url, headers=headers)
     try:
         urlObj = urllib.request.urlopen(req, timeout=timeout)
     except urllib.error.HTTPError as e:
@@ -29,7 +26,7 @@ def download(url, dest, startByte=0, endByte=None, headers=None, timeout=4, shar
             if retries > 0:
                 logger.warning("Thread didn't got the file it was expecting. Retrying ({} times left)...".format(retries-1))
                 time.sleep(5)
-                return download(url, dest, startByte, endByte, headers, timeout, shared_var, thread_shared_cmds, logger, retries-1)
+                return download(url, dest, req, startByte, endByte, timeout, shared_var, thread_shared_cmds, logger, retries-1)
             else:
                 raise
         else:
