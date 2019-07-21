@@ -49,7 +49,7 @@ class SmartDL:
     The main SmartDL class
     
     :param urls: Download url. It is possible to pass unsafe and unicode characters. You can also pass a list of urls, and those will be used as mirrors.
-    :type urls: string or list of string
+    :type urls: string or list of strings
     :param requestArgs: Arguments to be passed to a new urllib.request.Request instance in dictionary form. See https://docs.python.org/3/library/urllib.request.html#urllib.request.Request for options. 
     :type requestArgs: dict
     :param dest: Destination path. Default is `%TEMP%/pySmartDL/`.
