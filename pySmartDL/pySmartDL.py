@@ -50,8 +50,6 @@ class SmartDL:
     
     :param urls: Download url. It is possible to pass unsafe and unicode characters. You can also pass a list of urls, and those will be used as mirrors.
     :type urls: string or list of strings
-    :param requestArgs: Arguments to be passed to a new urllib.request.Request instance in dictionary form. See https://docs.python.org/3/library/urllib.request.html#urllib.request.Request for options. 
-    :type requestArgs: dict
     :param dest: Destination path. Default is `%TEMP%/pySmartDL/`.
     :type dest: string
     :param progress_bar: If True, prints a progress bar to the `stdout stream <http://docs.python.org/2/library/sys.html#sys.stdout>`_. Default is `True`.
@@ -66,6 +64,8 @@ class SmartDL:
     :type logger: `logging.Logger` instance
     :param connect_default_logger: If true, connects a default logger to the class.
     :type connect_default_logger: bool
+    :param requestArgs: Arguments to be passed to a new urllib.request.Request instance in dictionary form. See https://docs.python.org/3/library/urllib.request.html#urllib.request.Request for options. 
+    :type requestArgs: dict
     :rtype: `SmartDL` instance
     
     .. NOTE::
