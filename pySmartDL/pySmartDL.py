@@ -158,7 +158,7 @@ class SmartDL:
         '''
         auth_string = '%s:%s' % (username, password)
         base64string = base64.standard_b64encode(auth_string.encode('utf-8'))
-        self.headers['Authorization'] = b"Basic " + base64string
+        self.requestArgs['headers']['Authorization'] = b"Basic " + base64string
         
     def add_hash_verification(self, algorithm, hash):
         '''
