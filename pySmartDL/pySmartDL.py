@@ -85,6 +85,8 @@ class SmartDL:
         else:
             self.logger = utils.DummyLogger()
         if requestArgs:
+            if "headers" not in requestArgs:
+                requestArgs["headers"] = dict()
             self.requestArgs = requestArgs
         else:
             self.requestArgs = {"headers": dict()}
