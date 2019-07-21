@@ -46,8 +46,22 @@ Example 3: Mirrors are also supported
 
 	# Do something with obj.get_dest()
 
+=============================================================
+Example 4: Passing custom options to urllib.request.Request()
+=============================================================
+::
+
+	from pySmartDL import SmartDL
+
+	request_args = {"headers": {"User-Agent": "smyPartDL/86.75.309"}}
+	download_obj = SmartDL("http://httpbin.org/get", "./headerinfo.json", request_args=request_args)
+	download_obj.start()
+
+	# headerinfo.json should contain the custom headers
+
+
 ==================================================================
-Example 4: Fetch data to memory instead of reading it from a file
+Example 5: Fetch data to memory instead of reading it from a file
 ==================================================================
 ::
 
@@ -62,7 +76,7 @@ Example 4: Fetch data to memory instead of reading it from a file
 	# Do something with data
 	
 ====================================================================================
-Example 5: Use the nonblocking flag and get information during the download process
+Example 6: Use the nonblocking flag and get information during the download process
 ====================================================================================
 ::
 
@@ -98,7 +112,7 @@ Example 5: Use the nonblocking flag and get information during the download proc
 	# Do something with obj.get_dest()
 	
 =========================
-Example 6: Hash checking
+Example 7: Hash checking
 =========================
 
 Example with passing `blocking=True` to `obj.start()`::
