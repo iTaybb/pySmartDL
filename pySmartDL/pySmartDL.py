@@ -77,17 +77,17 @@ class SmartDL:
             * If no path is provided, `%TEMP%/pySmartDL/` will be used.
     '''
     
-    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, timeout=5, logger=None, connect_default_logger=False, requestArgs=None):
+    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, timeout=5, logger=None, connect_default_logger=False, request_args=None):
         if logger:
             self.logger = logger
         elif connect_default_logger:
             self.logger = utils.create_debugging_logger()
         else:
             self.logger = utils.DummyLogger()
-        if requestArgs:
-            if "headers" not in requestArgs:
-                requestArgs["headers"] = dict()
-            self.requestArgs = requestArgs
+        if request_args:
+            if "headers" not in request_args:
+                request_args["headers"] = dict()
+            self.requestArgs = request_args
         else:
             self.requestArgs = {"headers": dict()}
         if "User-Agent" not in self.requestArgs["headers"]:
