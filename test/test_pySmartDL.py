@@ -30,8 +30,8 @@ class TestSmartDL(unittest.TestCase):
             "http://www.mirrorservice.org/sites/downloads.sourceforge.net/s/se/sevenzip/7-Zip/9.20/7za920.zip"
         ]
         self.res_7za920_hash = '2a3afe19c180f8373fa02ff00254d5394fec0349f5804e0ad2f6067854ff28ac'
-        self.res_testfile_1gb = 'https://speed.hetzner.de/1GB.bin'
-        self.res_testfile_100mb = 'https://speed.hetzner.de/100MB.bin'
+        self.res_testfile_1gb = 'http://www.ovh.net/files/1Gio.dat'
+        self.res_testfile_100mb = 'http://www.ovh.net/files/100Mio.dat'
         self.enable_logging = "-vvv" in sys.argv
 
     def test_dependencies(self):
@@ -40,10 +40,15 @@ class TestSmartDL(unittest.TestCase):
     def test_download(self):
         obj = pySmartDL.SmartDL(self.res_7za920_mirrors, dest=self.dl_dir, progress_bar=False, connect_default_logger=self.enable_logging)
         obj.start()
+        self.assertEqual(obj.get_progress_bar(), '[##################]')
 
         data = obj.get_data(binary=True, bytes=2)
         
         self.assertEqual(data, b'PK')
+
+        # attempt to start a completed task
+        with self.assertRaises(RuntimeError) as ctx:
+            obj.start()
     
     def test_mirrors(self):
         urls = ["http://totally_fake_website/7za.zip", "https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip"]
@@ -82,7 +87,7 @@ class TestSmartDL(unittest.TestCase):
             # too bad, the file was too small and was downloaded complectely until we stopped it.
             # We should download a bigger file
             if self.res_testfile_100mb == testfile:
-                self.fail("The download got completed before we could stop it, even though we've used a big file. Are we on a 100GB/s connection to the Internet or someting?")
+                self.fail("The download got completed before we could stop it, even though we've used a big file. Are we on a 100GB/s internet connection or somethin'?")
             return self.test_pause_unpause(testfile=self.res_testfile_100mb)
         
         dl_size = obj.get_dl_size()
@@ -117,11 +122,10 @@ class TestSmartDL(unittest.TestCase):
 
         while not obj.get_dl_size():
             time.sleep(0.1)
-
         time.sleep(30)
 
         expected_dl_size = 30 * 1024**2
-        allowed_delta = 0.6 #  because we took only 30sec, the delta needs to be quite big, it we were to test 60sec the delta would probably be much smaller
+        allowed_delta = 0.6  # because we took only 30sec, the delta needs to be quite big, it we were to test 60sec the delta would probably be much smaller
         diff = math.fabs(expected_dl_size - obj.get_dl_size()) / expected_dl_size
 
         obj.stop()
@@ -149,6 +153,29 @@ class TestSmartDL(unittest.TestCase):
         obj.start(blocking=False)
         obj.wait()
         self.assertTrue(obj.isSuccessful())
+
+    def test_custom_headers(self):
+        # sending custom user agent
+        ua = "pySmartDL/1.3.2"
+       	request_args = {"headers": {"User-Agent": ua}}
+        obj = pySmartDL.SmartDL("http://httpbin.org/headers", request_args=request_args, progress_bar=False)
+        obj.start()
+        data = obj.get_json()
+        self.assertTrue(data['headers']['User-Agent'] == ua)
+
+        # passing empty request_args
+        obj = pySmartDL.SmartDL("http://httpbin.org/headers", request_args={}, progress_bar=False)
+        obj.start()
+        self.assertTrue(obj.isSuccessful())
+
+    def test_utils(self):
+        self.assertEqual(pySmartDL.utils.progress_bar(0.6, length=42), '[########################----------------]')
+        self.assertEqual(pySmartDL.utils.sizeof_human(175799789), '167.7 MB')
+        self.assertEqual(pySmartDL.utils.sizeof_human(0), '0 bytes')
+        self.assertEqual(pySmartDL.utils.time_human(50), '50 seconds')
+        self.assertEqual(pySmartDL.utils.time_human(50, fmt_short=True), '50s')
+        self.assertEqual(pySmartDL.utils.time_human(0, fmt_short=True), '0s')
+
         
 def test_suite():
     suite = unittest.makeSuite(TestSmartDL)

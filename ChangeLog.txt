@@ -5,7 +5,9 @@ Below you find a list with the added features, changes and fixes for
 each version.
 
 ======================
-(Version 1.3.2 beta; ??/04/19)
+(Version 1.3.2 beta; 26/07/19)
+- NEW: Added ability to parse json directly from the response.
+- NEW: Allow passing of custom arguments to urllib Request object (Pull request #34)
 - IMPROVE: Issue #29 - added timeout parameter to the constructor of SmartDL
 - IMPROVE: Better tests and logging.
 - FIX: Bug fixes.

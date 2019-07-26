@@ -13,6 +13,7 @@ import logging
 from io import StringIO
 import multiprocessing.dummy as multiprocessing
 from ctypes import c_int
+import json
 
 from . import utils
 from .control_thread import ControlThread
@@ -64,8 +65,8 @@ class SmartDL:
     :type logger: `logging.Logger` instance
     :param connect_default_logger: If true, connects a default logger to the class.
     :type connect_default_logger: bool
-    :param requestArgs: Arguments to be passed to a new urllib.request.Request instance in dictionary form. See https://docs.python.org/3/library/urllib.request.html#urllib.request.Request for options. 
-    :type requestArgs: dict
+    :param request_args: Arguments to be passed to a new urllib.request.Request instance in dictionary form. See `urllib.request docs <https://docs.python.org/3/library/urllib.request.html#urllib.request.Request>`_ for options. 
+    :type request_args: dict
     :rtype: `SmartDL` instance
     
     .. NOTE::
@@ -607,6 +608,17 @@ class SmartDL:
             The hashing algorithm must be supported on your system, as documented at `hashlib documentation page <http://docs.python.org/3/library/hashlib.html>`_.
         '''
         return hashlib.new(algorithm, self.get_data(binary=True)).hexdigest()
+
+    def get_json(self):
+        '''
+        Returns the JSON in the downloaded data. Will raise `RuntimeError` if it's
+        called when the download task is not finished yet. Will raise `json.decoder.JSONDecodeError`
+        if the downloaded data is not valid JSON.
+        
+        :rtype: dict
+        '''
+        data = self.get_data()
+        return json.loads(data)
 
 def post_threadpool_actions(pool, args, expected_filesize, SmartDLObj):
     "Run function after thread pool is done. Run this in a thread."

@@ -53,11 +53,12 @@ Example 4: Passing custom options to urllib.request.Request()
 
 	from pySmartDL import SmartDL
 
-	request_args = {"headers": {"User-Agent": "smyPartDL/86.75.309"}}
-	download_obj = SmartDL("http://httpbin.org/get", "./headerinfo.json", request_args=request_args)
-	download_obj.start()
+	request_args = {"headers": {"User-Agent": "pySmartDL/1.3.2"}}
+	obj = SmartDL("http://httpbin.org/headers", request_args=request_args, progress_bar=False)
+	obj.start()
 
-	# headerinfo.json should contain the custom headers
+	data = obj.get_json()
+	print(data)
 
 
 ==================================================================
@@ -71,7 +72,7 @@ Example 5: Fetch data to memory instead of reading it from a file
 	obj = SmartDL(url, progress_bar=False)
 	obj.start()
 
-	data = obj.get_data() # HTML tags!
+	data = obj.get_data()  # HTML tags!
 	
 	# Do something with data
 	
@@ -83,7 +84,7 @@ Example 6: Use the nonblocking flag and get information during the download proc
 	import time
 	from pySmartDL import SmartDL
 	 
-	url_100mb_file = ['https://speed.hetzner.de/100MB.bin']
+	url_100mb_file = ['http://www.ovh.net/files/100Mio.dat']
 	obj = SmartDL(url_100mb_file, progress_bar=False)
 	obj.start(blocking=False)
 

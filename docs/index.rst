@@ -14,7 +14,7 @@ Python Smart Download Manager -- pySmartDL
 * Speed limiting feature.
 * Hash checking.
 * Non-blocking, shows progress bar, download speed and eta.
-* Full support for custom headers and methods
+* Full support for custom headers and methods.
 * Python 3 Support
 
 =============

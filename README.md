@@ -1,7 +1,7 @@
 Python Smart Download Manager -- pySmartDL
 ==========================================
 
-``pySmartDL`` strives to be a full-pledged smart download manager for Python. Main features:
+``pySmartDL`` strives to be a full-fledged smart download manager for Python. Main features:
 
 * Built-in download acceleration (with the `multipart downloading technique <http://stackoverflow.com/questions/93642/how-do-download-accelerators-work>`_).
 * Mirrors support.
@@ -9,6 +9,7 @@ Python Smart Download Manager -- pySmartDL
 * Speed limiting feature.
 * Hash checking.
 * Non-blocking, shows progress bar, download speed and eta.
+* Full support for custom headers and methods.
 * Python 3 Support
 
 Project Links

@@ -9,7 +9,7 @@ def download(url, dest, requestArgs=None, startByte=0, endByte=None, timeout=4, 
     logger = logger or utils.DummyLogger()
     req = urllib.request.Request(url, **requestArgs)
     if endByte:
-        req.add_header('range', 'bytes=%d-%d' % (startByte, endByte))
+        req.add_header('Range', 'bytes={:.0f}-{:.0f}'.format(startByte, endByte))
     logger.info("Downloading '{}' to '{}'...".format(url, dest))
     try:
         urlObj = urllib.request.urlopen(req, timeout=timeout)
@@ -26,7 +26,7 @@ def download(url, dest, requestArgs=None, startByte=0, endByte=None, timeout=4, 
             if retries > 0:
                 logger.warning("Thread didn't got the file it was expecting. Retrying ({} times left)...".format(retries-1))
                 time.sleep(5)
-                return download(url, dest, req, startByte, endByte, timeout, shared_var, thread_shared_cmds, logger, retries-1)
+                return download(url, dest, requestArgs, startByte, endByte, timeout, shared_var, thread_shared_cmds, logger, retries-1)
             else:
                 raise
         else:
