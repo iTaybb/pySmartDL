@@ -64,6 +64,8 @@ class SmartDL:
     :type logger: `logging.Logger` instance
     :param connect_default_logger: If true, connects a default logger to the class.
     :type connect_default_logger: bool
+    :param requestArgs: Arguments to be passed to a new urllib.request.Request instance in dictionary form. See https://docs.python.org/3/library/urllib.request.html#urllib.request.Request for options. 
+    :type requestArgs: dict
     :rtype: `SmartDL` instance
     
     .. NOTE::
@@ -75,14 +77,21 @@ class SmartDL:
             * If no path is provided, `%TEMP%/pySmartDL/` will be used.
     '''
     
-    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, timeout=5, logger=None, connect_default_logger=False):
+    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, timeout=5, logger=None, connect_default_logger=False, request_args=None):
         if logger:
             self.logger = logger
         elif connect_default_logger:
             self.logger = utils.create_debugging_logger()
         else:
             self.logger = utils.DummyLogger()
-        
+        if request_args:
+            if "headers" not in request_args:
+                request_args["headers"] = dict()
+            self.requestArgs = request_args
+        else:
+            self.requestArgs = {"headers": dict()}
+        if "User-Agent" not in self.requestArgs["headers"]:
+            self.requestArgs["headers"]["User-Agent"] = utils.get_random_useragent()
         self.mirrors = [urls] if isinstance(urls, str) else urls
         if fix_urls:
             self.mirrors = [utils.url_fix(x) for x in self.mirrors]
@@ -99,8 +108,6 @@ class SmartDL:
             self.dest = os.path.join(self.dest, fn)
         
         self.progress_bar = progress_bar
-        
-        self.headers = {'User-Agent': utils.get_random_useragent()}
         self.threads_count = threads
         self.timeout = timeout
         self.current_attemp = 1 
@@ -151,7 +158,7 @@ class SmartDL:
         '''
         auth_string = '%s:%s' % (username, password)
         base64string = base64.standard_b64encode(auth_string.encode('utf-8'))
-        self.headers['Authorization'] = b"Basic " + base64string
+        self.requestArgs['headers']['Authorization'] = b"Basic " + base64string
         
     def add_hash_verification(self, algorithm, hash):
         '''
@@ -195,7 +202,8 @@ class SmartDL:
         for filename in default_sums_filenames:
             try:
                 sums_url = "%s/%s" % (folder, filename)
-                obj = urllib.request.urlopen(sums_url)
+                sumsRequest = urllib.request.Request(sums_url, **self.requestArgs)
+                obj = urllib.request.urlopen(sumsRequest)
                 data = obj.read().split('\n')
                 obj.close()
                 
@@ -243,7 +251,7 @@ class SmartDL:
                 return
         
         self.logger.info("Downloading '{}' to '{}'...".format(self.url, self.dest))
-        req = urllib.request.Request(self.url, headers=self.headers)
+        req = urllib.request.Request(self.url, **self.requestArgs)
         try:
             urlObj = urllib.request.urlopen(req, timeout=self.timeout)
         except (urllib.error.HTTPError, urllib.error.URLError, socket.timeout) as e:
@@ -282,9 +290,9 @@ class SmartDL:
                 download,
                 self.url,
                 self.dest+".%.3d" % i,
+                self.requestArgs,
                 arg[0],
                 arg[1],
-                copy.deepcopy(self.headers),
                 self.timeout,
                 self.shared_var,
                 self.thread_shared_cmds,
