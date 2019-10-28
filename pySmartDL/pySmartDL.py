@@ -684,12 +684,12 @@ def _calc_chunk_size(filesize, threads, minChunkFile):
         
     args = []
     pos = 0
-    chunk = filesize/threads
+    chunk = round(filesize/threads)
     for i in range(threads):
         startByte = pos
         endByte = pos + chunk
-        if endByte > filesize-1:
-            endByte = filesize-1
+        if endByte > filesize:
+            endByte = filesize
         args.append((startByte, endByte))
         pos += chunk+1
         
