@@ -22,7 +22,7 @@ from .download import download
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 3
-__version_micro__ = 2
+__version_micro__ = 3
 __version__ = "{}.{}.{}".format(__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
@@ -157,7 +157,7 @@ class SmartDL:
         :param password: Password.
         :type password: string
         '''
-        auth_string = '%s:%s' % (username, password)
+        auth_string = '{}:{}'.format(username, password)
         base64string = base64.standard_b64encode(auth_string.encode('utf-8'))
         self.requestArgs['headers']['Authorization'] = b"Basic " + base64string
         
@@ -246,7 +246,7 @@ class SmartDL:
             self.logger.info('One URL is loaded.')
         
         if self.verify_hash and os.path.exists(self.dest):
-            if _get_file_hash(self.hash_algorithm, self.dest) == self.hash_code:
+            if utils.get_file_hash(self.hash_algorithm, self.dest) == self.hash_code:
                 self.logger.info("Destination '%s' already exists, and the hash matches. No need to download." % self.dest)
                 self.status = 'finished'
                 return
@@ -277,7 +277,7 @@ class SmartDL:
             self.logger.warning("Server did not send Content-Length. Filesize is unknown.")
             self.filesize = 0
             
-        args = _calc_chunk_size(self.filesize, self.threads_count, self.minChunkFile)
+        args = utils.calc_chunk_size(self.filesize, self.threads_count, self.minChunkFile)
         bytes_per_thread = args[0][1] - args[0][0] + 1
         if len(args)>1:
             self.logger.info("Launching {} threads (downloads {}/thread).".format(len(args),  utils.sizeof_human(bytes_per_thread)))
@@ -655,42 +655,10 @@ def post_threadpool_actions(pool, args, expected_filesize, SmartDLObj):
     
     if SmartDLObj.verify_hash:
         dest_path = args[-1]            
-        hash_ = _get_file_hash(SmartDLObj.hash_algorithm, dest_path)
+        hash_ = utils.get_file_hash(SmartDLObj.hash_algorithm, dest_path)
 	
         if hash_ == SmartDLObj.hash_code:
             SmartDLObj.logger.info('Hash verification succeeded.')
         else:
             SmartDLObj.logger.warning('Hash verification failed.')
             SmartDLObj.try_next_mirror(HashFailedException(os.path.basename(dest_path), hash, SmartDLObj.hash_code))
-	
-def _get_file_hash(algorithm, path):
-    hashAlg = hashlib.new(algorithm)
-    block_sz = 1* 1024**2  # 1 MB
-
-    with open(path, 'rb') as f:
-        data = f.read(block_sz)
-        while data:
-            hashAlg.update(data)
-            data = f.read(block_sz)
-    
-    return hashAlg.hexdigest()
-
-def _calc_chunk_size(filesize, threads, minChunkFile):
-    if not filesize:
-        return [(0, 0)]
-        
-    while math.ceil(filesize/threads) < minChunkFile and threads > 1:
-        threads -= 1
-        
-    args = []
-    pos = 0
-    chunk = math.ceil(filesize/threads)
-    for i in range(threads):
-        startByte = pos
-        endByte = pos + chunk
-        if endByte > filesize-1:
-            endByte = filesize-1
-        args.append((startByte, endByte))
-        pos += chunk+1
-        
-    return args

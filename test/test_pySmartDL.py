@@ -175,6 +175,23 @@ class TestSmartDL(unittest.TestCase):
         self.assertEqual(pySmartDL.utils.time_human(50), '50 seconds')
         self.assertEqual(pySmartDL.utils.time_human(50, fmt_short=True), '50s')
         self.assertEqual(pySmartDL.utils.time_human(0, fmt_short=True), '0s')
+        self._test_calc_chunk_size(10000, 10, 20)
+        self._test_calc_chunk_size(1906023034, 20, 20)
+        self._test_calc_chunk_size(261969919, 20, 32)
+
+    def _test_calc_chunk_size(self, filesize, threads, minChunkFile):
+        chunks = pySmartDL.utils.calc_chunk_size(filesize, threads, 20)
+        self.assertEqual(chunks[0][0], 0)
+        self.assertIsInstance(chunks[0][0], int)
+        self.assertIsInstance(chunks[0][1], int)
+
+        for i in range(1, len(chunks)):
+            self.assertIsInstance(chunks[i][0], int)
+            self.assertIsInstance(chunks[i][1], int)
+            self.assertTrue(chunks[i][0] <= chunks[i][1])
+            self.assertEqual(chunks[i-1][1] + 1, chunks[i][0])
+            
+        self.assertEqual(chunks[-1][1], filesize-1)
 
         
 def test_suite():

@@ -9,8 +9,9 @@ import urllib.request, urllib.parse, urllib.error
 import random
 import logging
 import re
+import hashlib
 from concurrent import futures
-from math import log
+from math import log, ceil
 import shutil
 
 DEFAULT_LOGGER_CREATED = False
@@ -236,6 +237,61 @@ def time_human(duration, fmt_short=False, show_ms=False):
     if fmt_short:
         return "".join(["%s%s" % x for x in result])
     return ", ".join(["%s %s" % x for x in result])
+
+def get_file_hash(algorithm, path):
+    '''
+    Calculates a file's hash.
+
+    .. WARNING::
+        The hashing algorithm must be supported on your system, as documented at `hashlib documentation page <http://docs.python.org/3/library/hashlib.html>`_.
+    
+    :param algorithm: Hashing algorithm.
+    :type algorithm: string
+    :param path: The file path
+    :type path: string
+    :rtype: string
+    '''
+    hashAlg = hashlib.new(algorithm)
+    block_sz = 1*1024**2  # 1 MB
+
+    with open(path, 'rb') as f:
+        data = f.read(block_sz)
+        while data:
+            hashAlg.update(data)
+            data = f.read(block_sz)
+    
+    return hashAlg.hexdigest()
+
+def calc_chunk_size(filesize, threads, minChunkFile):
+    '''
+    Calculates the byte chunks to download.
+    
+    :param filesize: filesize in bytes.
+    :type filesize: int
+    :param threads: Number of trheads
+    :type threads: int
+    :param minChunkFile: Minimum chunk size
+    :type minChunkFile: int
+    :rtype: Array of (startByte,endByte) tuples
+    '''
+    if not filesize:
+        return [(0, 0)]
+        
+    while ceil(filesize/threads) < minChunkFile and threads > 1:
+        threads -= 1
+        
+    args = []
+    pos = 0
+    chunk = ceil(filesize/threads)
+    for i in range(threads):
+        startByte = pos
+        endByte = pos + chunk
+        if endByte > filesize-1:
+            endByte = filesize-1
+        args.append((startByte, endByte))
+        pos += chunk+1
+        
+    return args
     
 def create_debugging_logger():
     '''
