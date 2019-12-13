@@ -41,7 +41,7 @@ def download(url, dest, requestArgs=None, startByte=0, endByte=None, timeout=4, 
                 filesize = int(urlObj.headers["Content-Length"])
                 logger.info("Content-Length is {}.".format(filesize))
             except (IndexError, KeyError, TypeError):
-                logger.warning("Server did not send Content-Length.")
+                logger.warning("Server did not send Content-Length. Filesize is unknown.")
         
         filesize_dl = 0  # total downloaded size
         limitspeed_timestamp = time.time()

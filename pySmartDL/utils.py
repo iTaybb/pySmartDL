@@ -104,9 +104,12 @@ def is_HTTPRange_supported(url, timeout=15):
     headers = {'Range': 'bytes=0-3'}
     req = urllib.request.Request(url, headers=headers)
     urlObj = urllib.request.urlopen(req, timeout=timeout)
-    filesize = int(urlObj.headers["Content-Length"])
-    
     urlObj.close()
+    
+    if "Content-Length" not in urlObj.headers:
+        return False
+
+    filesize = int(urlObj.headers["Content-Length"])
     return filesize != fullsize
 
 def get_filesize(url, timeout=15):
