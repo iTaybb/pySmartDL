@@ -61,7 +61,7 @@ def url_fix(s, charset='utf-8'):
     '''
     scheme, netloc, path, qs, anchor = urllib.parse.urlsplit(s)
     path = urllib.parse.quote(path, '/%')
-    qs = urllib.parse.quote_plus(qs, ':&=')
+    qs = urllib.parse.quote_plus(qs, ':&%=')
     return urllib.parse.urlunsplit((scheme, netloc, path, qs, anchor))
     
 def progress_bar(progress, length=20):
