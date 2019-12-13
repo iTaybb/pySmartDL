@@ -8,6 +8,7 @@ each version.
 (Version 1.3.4 beta; ????)
 - NEW: Added official support for Python 3.8.
 - FIX: Bug #41
+- FIX: Other Bug fixes.
 
 (Version 1.3.3 beta; 30/10/19)
 - IMPROVE: Better tests and logging.
