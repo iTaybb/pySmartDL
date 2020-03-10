@@ -97,7 +97,7 @@ def is_HTTPRange_supported(url, timeout=15):
     '''
     url = url.replace(' ', '%20')
     
-    fullsize = get_filesize(url)
+    fullsize = get_filesize(url, timeout=timeout)
     if not fullsize:
         return False
     
