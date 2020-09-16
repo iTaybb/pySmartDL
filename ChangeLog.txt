@@ -5,6 +5,9 @@ Below you find a list with the added features, changes and fixes for
 each version.
 
 ======================
+(Version 1.3.5 beta; ????)
+- NEW: Flag to ignore ssl certificates.
+
 (Version 1.3.4 beta; ????)
 - NEW: Added official support for Python 3.8.
 - FIX: Bug #41
