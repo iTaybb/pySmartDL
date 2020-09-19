@@ -155,3 +155,15 @@ Example with passing `blocking=False` to `obj.start()`::
 		print("Download failed with the following exceptions:")
 		for e in obj.get_errors():
 			print(unicode(e))
+
+==============================
+Example 8: No ssl verification
+==============================
+::
+
+	from pySmartDL import SmartDL
+
+	obj = SmartDL("https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip", verify=False)
+	obj.start()
+
+	# Do something with obj.get_dest()

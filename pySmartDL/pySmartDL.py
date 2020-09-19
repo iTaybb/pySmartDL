@@ -14,6 +14,7 @@ from io import StringIO
 import multiprocessing.dummy as multiprocessing
 from ctypes import c_int
 import json
+import ssl
 
 from . import utils
 from .control_thread import ControlThread
@@ -22,7 +23,7 @@ from .download import download
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 3
-__version_micro__ = 4
+__version_micro__ = 5
 __version__ = "{}.{}.{}".format(__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):
@@ -68,6 +69,8 @@ class SmartDL:
     :param request_args: Arguments to be passed to a new urllib.request.Request instance in dictionary form. See `urllib.request docs <https://docs.python.org/3/library/urllib.request.html#urllib.request.Request>`_ for options. 
     :type request_args: dict
     :rtype: `SmartDL` instance
+    :param verify: If ssl certificates should be validated.
+    :type verify: bool
     
     .. NOTE::
             The provided dest may be a folder or a full path name (including filename). The workflow is:
@@ -78,7 +81,7 @@ class SmartDL:
             * If no path is provided, `%TEMP%/pySmartDL/` will be used.
     '''
     
-    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, timeout=5, logger=None, connect_default_logger=False, request_args=None):
+    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, timeout=5, logger=None, connect_default_logger=False, request_args=None, verify=True):
         if logger:
             self.logger = logger
         elif connect_default_logger:
@@ -141,6 +144,13 @@ class SmartDL:
         
         self.logger.info("Creating a ThreadPool of {} thread(s).".format(self.threads_count))
         self.pool = utils.ManagedThreadPoolExecutor(self.threads_count)
+
+        if verify:
+            self.context = None
+        else:
+            self.context = ssl.create_default_context()
+            self.context.check_hostname = False
+            self.context.verify_mode = ssl.CERT_NONE
         
     def __str__(self):
         return 'SmartDL(r"{}", dest=r"{}")'.format(self.url, self.dest)
@@ -250,11 +260,11 @@ class SmartDL:
                 self.logger.info("Destination '%s' already exists, and the hash matches. No need to download." % self.dest)
                 self.status = 'finished'
                 return
-        
+
         self.logger.info("Downloading '{}' to '{}'...".format(self.url, self.dest))
         req = urllib.request.Request(self.url, **self.requestArgs)
         try:
-            urlObj = urllib.request.urlopen(req, timeout=self.timeout)
+            urlObj = urllib.request.urlopen(req, timeout=self.timeout, context=self.context)
         except (urllib.error.HTTPError, urllib.error.URLError, socket.timeout) as e:
             self.errors.append(e)
             if self.mirrors:
@@ -292,6 +302,7 @@ class SmartDL:
                 self.url,
                 self.dest+".%.3d" % i,
                 self.requestArgs,
+                self.context,
                 arg[0],
                 arg[1],
                 self.timeout,

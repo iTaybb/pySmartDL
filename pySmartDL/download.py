@@ -1,10 +1,9 @@
 import os
 import urllib.request, urllib.error, urllib.parse
 import time
-
 from . import utils
 
-def download(url, dest, requestArgs=None, startByte=0, endByte=None, timeout=4, shared_var=None, thread_shared_cmds=None, logger=None, retries=3):
+def download(url, dest, requestArgs=None, context=None, startByte=0, endByte=None, timeout=4, shared_var=None, thread_shared_cmds=None, logger=None, retries=3):
     "The basic download function that runs at each thread."
     logger = logger or utils.DummyLogger()
     req = urllib.request.Request(url, **requestArgs)
@@ -12,7 +11,8 @@ def download(url, dest, requestArgs=None, startByte=0, endByte=None, timeout=4, 
         req.add_header('Range', 'bytes={:.0f}-{:.0f}'.format(startByte, endByte))
     logger.info("Downloading '{}' to '{}'...".format(url, dest))
     try:
-        urlObj = urllib.request.urlopen(req, timeout=timeout)
+        # Context is used to skip ssl validation if verify is False.
+        urlObj = urllib.request.urlopen(req, timeout=timeout, context=context)
     except urllib.error.HTTPError as e:
         if e.code == 416:
             '''
