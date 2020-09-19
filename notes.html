@@ -1,0 +1,180 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Notes &#8212; pySmartDL 1.3.4 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="To-Do List" href="todo.html" />
+    <link rel="prev" title="Documentation" href="code.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="todo.html" title="To-Do List"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="code.html" title="Documentation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pySmartDL 1.3.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="notes">
+<h1>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="bytes-downloaded-counter">
+<h2>Bytes downloaded counter<a class="headerlink" href="#bytes-downloaded-counter" title="Permalink to this headline">¶</a></h2>
+<p>A shared-object is needed in order to count the downloaded bytes from
+the threads. I thought about three ways to achieve it:</p>
+<ol class="arabic simple">
+<li><strong>A global var</strong>: <cite>shared1</cite></li>
+<li><strong>SharedObject()</strong> (python object with thread locks): <cite>shared2</cite></li>
+<li><strong>multiprocessing.Value</strong>: <cite>shared3</cite></li>
+</ol>
+<p>I’ve tried their performance, where the read filesize was 67060045
+Bytes (Approx. 64MB).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">shared1</th>
+<th class="head">shared2</th>
+<th class="head">shared3</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>67027277</td>
+<td>64495949</td>
+<td>67010893</td>
+</tr>
+<tr class="row-odd"><td>67060045</td>
+<td>66265421</td>
+<td>67043661</td>
+</tr>
+<tr class="row-even"><td>67060045</td>
+<td>65364301</td>
+<td>67060045</td>
+</tr>
+<tr class="row-odd"><td>67051853</td>
+<td>65118541</td>
+<td>67043661</td>
+</tr>
+<tr class="row-even"><td>67060045</td>
+<td>65927843</td>
+<td>67060045</td>
+</tr>
+<tr class="row-odd"><td>67051853</td>
+<td>63584931</td>
+<td>67043661</td>
+</tr>
+<tr class="row-even"><td>67035469</td>
+<td>64569677</td>
+<td>67051853</td>
+</tr>
+</tbody>
+</table>
+<p>The results:</p>
+<ul class="simple">
+<li>shared1 has an error rate of <strong>0.07%</strong>.</li>
+<li>shared2 has an error rate of <strong>3.72%</strong>.</li>
+<li>shared3 has an error rate of <strong>0.06%</strong>.</li>
+</ul>
+<p>It is not clear why shared2 fails so bad, but we’ll stick with shared3 concept for now.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Notes</a><ul>
+<li><a class="reference internal" href="#bytes-downloaded-counter">Bytes downloaded counter</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="code.html"
+                        title="previous chapter">Documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="todo.html"
+                        title="next chapter">To-Do List</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/notes.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="todo.html" title="To-Do List"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="code.html" title="Documentation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pySmartDL 1.3.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-2020, Itay Brandes.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.
+    </div>
+  </body>
+</html>
