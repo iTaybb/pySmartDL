@@ -23,7 +23,7 @@ from .download import download
 __all__ = ['SmartDL', 'utils']
 __version_mjaor__ = 1
 __version_minor__ = 3
-__version_micro__ = 5
+__version_micro__ = 4
 __version__ = "{}.{}.{}".format(__version_mjaor__, __version_minor__, __version_micro__)
 
 class HashFailedException(Exception):

@@ -53,4 +53,4 @@ jobs:
           skip-cleanup: true
           distributions: "sdist bdist_wheel"
           on:
-            all_branches: true  # actually based on a -live tag
+            all_branches: true  # actually based on the tag

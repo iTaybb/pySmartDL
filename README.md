@@ -56,4 +56,4 @@ Requirements
 
  * Python 3.4 or greater.
 
-Copyright (C) 2014-2019 Itay Brandes.
+Copyright (C) 2014-2020 Itay Brandes.
