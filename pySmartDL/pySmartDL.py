@@ -10,6 +10,7 @@ import base64
 import hashlib
 import socket
 import logging
+from http.cookiejar import MozillaCookieJar
 from io import StringIO
 import multiprocessing.dummy as multiprocessing
 from ctypes import c_int
@@ -71,7 +72,9 @@ class SmartDL:
     :rtype: `SmartDL` instance
     :param verify: If ssl certificates should be validated.
     :type verify: bool
-    
+    :param cookie_file: Cookie file to read from
+    :type cookie_file: str
+
     .. NOTE::
             The provided dest may be a folder or a full path name (including filename). The workflow is:
             
@@ -81,7 +84,8 @@ class SmartDL:
             * If no path is provided, `%TEMP%/pySmartDL/` will be used.
     '''
     
-    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, timeout=5, logger=None, connect_default_logger=False, request_args=None, verify=True):
+    def __init__(self, urls, dest=None, progress_bar=True, fix_urls=True, threads=5, timeout=5, logger=None, connect_default_logger=False, request_args=None, verify=True, cookie_file=None):
+        self.cookie_file = cookie_file
         if logger:
             self.logger = logger
         elif connect_default_logger:
@@ -263,6 +267,16 @@ class SmartDL:
 
         self.logger.info("Downloading '{}' to '{}'...".format(self.url, self.dest))
         req = urllib.request.Request(self.url, **self.requestArgs)
+        # set cookie if we passed in cookie file and update the requestArgs to propagate it to the rest of the requests
+        if self.cookie_file:
+            try:
+                cookie = MozillaCookieJar(self.cookie_file)
+                cookie.load(ignore_expires=True, ignore_discard=True)
+                cookie.add_cookie_header(req)
+                self.requestArgs['headers']['Cookie'] = req.get_header("Cookie")
+            except OSError:
+                self.logger.error("Cookie file passed in is invalid, ignoring the cookie")
+                raise
         try:
             urlObj = urllib.request.urlopen(req, timeout=self.timeout, context=self.context)
         except (urllib.error.HTTPError, urllib.error.URLError, socket.timeout) as e:
