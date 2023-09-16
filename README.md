@@ -25,7 +25,9 @@
 
 ### Using pip (Recommended way)
 
-> Make sure python-pip is installed on you system. Ifyou are using virtualenv, then pip is alredy installedinto environments created by virtualenv. Run pip toinstall pySmartDL:
+> Make sure `python-pip` is installed on you system.
+> If you are using `virtualenv`, then `pip` is alredy installed into environments created by virtualenv.
+> Run `pip toinstall pySmartDL`:
 
 ```shell
 pip install pySmartDL
