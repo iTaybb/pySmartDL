@@ -35,7 +35,7 @@ pip install pySmartDL
 
 ### From Source
 
-The pySmartDL package is installed from source using distutils in the usual way.  Download the `source distribution` <http://pypi.python.org/pypi/pySmartDL> first.  Unpack the source `zip`` and run the following to install the package site-wide:
+The pySmartDL package is installed from source using distutils in the usual way.  Download the `source distribution` <http://pypi.python.org/pypi/pySmartDL> first.  Unpack the source `zip` and run the following to install the package site-wide:
 
 ```shell
 python setup.py install
