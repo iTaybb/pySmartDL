@@ -25,9 +25,9 @@
 
 ### Using pip (Recommended way)
 
-> Make sure `python-pip` is installed on you system.
-> If you are using `virtualenv`, then `pip` is alredy installed into environments created by virtualenv.
-> Run `pip toinstall pySmartDL`:
+Make sure `python-pip` is installed on you system.
+If you are using `virtualenv`, then `pip` is alredy installed into environments created by virtualenv.
+Run `pip toinstall pySmartDL`:
 
 ```shell
 pip install pySmartDL
@@ -35,7 +35,7 @@ pip install pySmartDL
 
 ### From Source
 
-> The pySmartDL package is installed from source using distutils in the usual way.  Download the `source distribution` <http://pypi.python.org/pypi/pySmartDL> first.  Unpack the source `zip`` and run the following to install the package site-wide:
+The pySmartDL package is installed from source using distutils in the usual way.  Download the `source distribution` <http://pypi.python.org/pypi/pySmartDL> first.  Unpack the source `zip`` and run the following to install the package site-wide:
 
 ```shell
 python setup.py install
