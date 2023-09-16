@@ -1,9 +1,8 @@
-Python Smart Download Manager -- pySmartDL
-==========================================
+# Python Smart Download Manager -- pySmartDL
 
-``pySmartDL`` strives to be a full-fledged smart download manager for Python. Main features:
+`pySmartDL` strives to be a full-fledged smart download manager for Python. Main features:
 
-* Built-in download acceleration (with the `multipart downloading technique <http://stackoverflow.com/questions/93642/how-do-download-accelerators-work>`_).
+* Built-in download acceleration (with the `multipart downloading technique` <http://stackoverflow.com/questions/93642/how-do-download-accelerators-work>).
 * Mirrors support.
 * Pause/Unpause feature.
 * Speed limiting feature.
@@ -12,48 +11,53 @@ Python Smart Download Manager -- pySmartDL
 * Full support for custom headers and methods.
 * Python 3 Support
 
-Project Links
-=============
+## Project Links
 
- * Downloads: http://pypi.python.org/pypi/pySmartDL/
- * Documentation: http://itaybb.github.io/pySmartDL/
- * Project page: https://github.com/iTaybb/pySmartDL/
- * Bugs and Issues: https://github.com/iTaybb/pySmartDL/issues
- 
-Installation
-============
+* Downloads: <http://pypi.python.org/pypi/pySmartDL/>
 
-**Using pip (recommended way)**
+* Documentation: <http://itaybb.github.io/pySmartDL/>
 
-    Make sure python-pip is installed on you system. If you are using virtualenv, then pip is alredy installed into environments created by virtualenv. Run pip to install pySmartDL:
+* Project page: <https://github.com/iTaybb/pySmartDL/>
 
-    ``pip install pySmartDL``
+* Bugs and Issues: <https://github.com/iTaybb/pySmartDL/issues>
 
-**From Source**
+## Installation
 
-    The pySmartDL package is installed from source using distutils in the usual way.  Download the `source distribution <http://pypi.python.org/pypi/pySmartDL>`_ first.  Unpack the source zip and run the following to install the package site-wide:
+### Using pip (Recommended way)
 
-    ``python setup.py install``
- 
-Usage
-=====
+> Make sure python-pip is installed on you system. Ifyou are using virtualenv, then pip is alredy installedinto environments created by virtualenv. Run pip toinstall pySmartDL:
+
+```shell
+pip install pySmartDL
+```
+
+### From Source
+
+> The pySmartDL package is installed from source using distutils in the usual way.  Download the `source distribution` <http://pypi.python.org/pypi/pySmartDL> first.  Unpack the source `zip`` and run the following to install the package site-wide:
+
+```shell
+python setup.py install
+```
+
+## Usage
 
 Download is as simple as creating an instance and starting it:
 
-	from pySmartDL import SmartDL
+```py
+from pySmartDL import SmartDL
 
-	url = "https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip"
-	dest = "C:\\Downloads\\" # or '~/Downloads/' on linux
+url = "https://github.com/iTaybb/pySmartDL/raw/master/test/7za920.zip"
+dest = "C:\\Downloads\\" # or '~/Downloads/' on linux
 
-	obj = SmartDL(url, dest)
-	obj.start()
-	# [*] 0.23 Mb / 0.37 Mb @ 88.00Kb/s [##########--------] [60%, 2s left]
+obj = SmartDL(url, dest)
+obj.start()
+# [*] 0.23 Mb / 0.37 Mb @ 88.00Kb/s [##########--------] [60%, 2s left]
 
-	path = obj.get_dest()
+path = obj.get_dest()
+```
 
-Requirements
-==============
+## Requirements
 
- * Python 3.4 or greater.
+* Python 3.4 or greater.
 
 Copyright (C) 2014-2020 Itay Brandes.
