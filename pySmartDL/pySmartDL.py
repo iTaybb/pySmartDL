@@ -130,17 +130,18 @@ class SmartDL:
         self.post_threadpool_thread = None
         self.control_thread = None
         
-        if not os.path.exists(os.path.dirname(self.dest)):
-            self.logger.info('Folder "{}" does not exist. Creating...'.format(os.path.dirname(self.dest)))
-            os.makedirs(os.path.dirname(self.dest))
+        dir = os.path.dirname(self.dest)
+        if not dir:
+            self.dest = os.path.join(".", self.dest)
+        else:
+            if not os.path.exists(dir):
+                self.logger.info('Directory "{}" does not exist. Creating it...'.format(dir))
+                os.makedirs(dir)
         if not utils.is_HTTPRange_supported(self.url, timeout=self.timeout):
             self.logger.warning("Server does not support HTTPRange. threads_count is set to 1.")
             self.threads_count = 1
         if os.path.exists(self.dest):
             self.logger.warning('Destination "{}" already exists. Existing file will be removed.'.format(self.dest))
-        if not os.path.exists(os.path.dirname(self.dest)):
-            self.logger.warning('Directory "{}" does not exist. Creating it...'.format(os.path.dirname(self.dest)))
-            os.makedirs(os.path.dirname(self.dest))
         
         self.logger.info("Creating a ThreadPool of {} thread(s).".format(self.threads_count))
         self.pool = utils.ManagedThreadPoolExecutor(self.threads_count)
