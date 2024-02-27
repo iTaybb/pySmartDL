@@ -132,6 +132,7 @@ class SmartDL:
         
         dir = os.path.dirname(self.dest)
         if not dir:
+            self.logger.info('Destination "{}" does not have a directory component. Placing it in current working directory'.format(self.dest))
             self.dest = os.path.join(".", self.dest)
         else:
             if not os.path.exists(dir):
